@@ -33,6 +33,7 @@ version = release = proj.__version__
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
+    'recentupdate',
     'sphinx.ext.githubpages',
     'sphinxnotes.any',
 ]

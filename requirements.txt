@@ -1,0 +1,3 @@
+sphinx
+GitPython
+Jinja2

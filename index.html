@@ -46,15 +46,16 @@
 <dd class="field-odd"><p>BSD, see LICENSE for details.</p>
 </dd>
 </dl>
-<p>Sphinx extension for generating a list of recently updated documents from git log, outputted as both document and RSS.</p>
+<p>Get the document update information from git and display it in Sphinx documentation.</p>
 <div class="contents local topic" id="contents">
 <ul class="simple">
 <li><p><a class="reference internal" href="#installation" id="id2">Installation</a></p></li>
 <li><p><a class="reference internal" href="#configuration" id="id3">Configuration</a></p></li>
 <li><p><a class="reference internal" href="#functionalities" id="id4">Functionalities</a></p></li>
-<li><p><a class="reference internal" href="#change-log" id="id5">Change Log</a></p>
+<li><p><a class="reference internal" href="#filters" id="id5">Filters</a></p></li>
+<li><p><a class="reference internal" href="#change-log" id="id6">Change Log</a></p>
 <ul>
-<li><p><a class="reference internal" href="#xx-xx-1-0a0" id="id6">2021-XX-XX 1.0a0</a></p></li>
+<li><p><a class="reference internal" href="#xx-xx-1-0a0" id="id7">2021-XX-XX 1.0a0</a></p></li>
 </ul>
 </li>
 </ul>
@@ -77,9 +78,74 @@
 <section id="configuration">
 <span id="id1"></span><h2>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h2>
 <p>The extension provides the following configuration:</p>
+<dl class="any">
+<dt class="sig sig-object any" id="confval-recentupdate_count">
+<span class="sig-name descname"><span class="pre">recentupdate_count</span></span><a class="headerlink" href="#confval-recentupdate_count" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">int</span></code></p>
+</dd>
+<dt class="field-even">Default</dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">10</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="any">
+<dt class="sig sig-object any" id="confval-recentupdate_template">
+<span class="sig-name descname"><span class="pre">recentupdate_template</span></span><a class="headerlink" href="#confval-recentupdate_template" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">string</span></code></p>
+</dd>
+<dt class="field-even">Default</dt>
+<dd class="field-even"><p></p></dd>
+</dl>
+</dd></dl>
+
+<dl class="any">
+<dt class="sig sig-object any" id="confval-recentupdate_date_format">
+<span class="sig-name descname"><span class="pre">recentupdate_date_format</span></span><a class="headerlink" href="#confval-recentupdate_date_format" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">string</span></code></p>
+</dd>
+<dt class="field-even">Default</dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">&quot;%Y-%m-%dT&quot;</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 <section id="functionalities">
 <h2>Functionalities<a class="headerlink" href="#functionalities" title="Permalink to this headline">¶</a></h2>
+<p>Use directive <code class="docutils literal notranslate"><span class="pre">..</span> <span class="pre">recentupdate::</span></code>.</p>
+<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="p">..</span> <span class="ow">topic</span><span class="p">::</span> Recent updates:
+
+<span class="p">   ..</span> <span class="ow">recentupdate</span><span class="p">::</span>
+</pre></div>
+</div>
+<p>Will be rendered to:</p>
+<div class="topic">
+<p class="topic-title">Recent updates:</p>
+<dl class="field-list simple">
+<dt class="field-odd">On 2021-11-16, Shengyu Zhang</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p>Modified <a class="reference internal" href="#"><span class="doc">sphinxnotes.recentupdate</span></a></p></li>
+</ul>
+</dd>
+<dt class="field-even">On 2021-10-11, Shengyu Zhang</dt>
+<dd class="field-even"><ul class="simple">
+<li><p>Added <a class="reference internal" href="#"><span class="doc">sphinxnotes.recentupdate</span></a></p></li>
+</ul>
+</dd>
+</dl>
+</div>
+</section>
+<section id="filters">
+<h2>Filters<a class="headerlink" href="#filters" title="Permalink to this headline">¶</a></h2>
+<p>strftime</p>
+<p>roles</p>
 </section>
 <section id="change-log">
 <h2>Change Log<a class="headerlink" href="#change-log" title="Permalink to this headline">¶</a></h2>
@@ -100,7 +166,7 @@
       &copy;2021, Shengyu Zhang.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.2.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.3.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

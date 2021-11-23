@@ -9,7 +9,7 @@ sphinxnotes.recentupdate
 :copyright: Copyright ©2021 by Shengyu Zhang.
 :license: BSD, see LICENSE for details.
 
-Sphinx extension for generating a list of recently updated documents from git log, outputted as both document and RSS.
+Get the document update information from git and display it in Sphinx documentation.
 
 .. contents::
    :local:
@@ -20,13 +20,13 @@ Installation
 
 Download it from official Python Package Index:
 
-.. code-block:: console
+.. code:: console
 
    $ pip install sphinxnotes-recentupdate
 
 Add extension to :file:`conf.py` in your sphinx project:
 
-.. code-block:: python
+.. code:: python
 
     extensions = [
               # …
@@ -41,8 +41,41 @@ Configuration
 
 The extension provides the following configuration:
 
+.. confval:: recentupdate_count
+   :type: int
+   :default: 10
+
+.. confval:: recentupdate_template
+   :type: string
+   :default:
+
+.. confval:: recentupdate_date_format
+   :type: string
+   :default: "%Y-%m-%dT"
+
 Functionalities
 ===============
+
+Use directive ``.. recentupdate::``.
+
+.. code:: rst
+
+   .. topic:: Recent updates:
+
+      .. recentupdate::
+
+Will be rendered to:
+
+.. topic:: Recent updates:
+
+   .. recentupdate::
+
+Filters
+=======
+
+strftime
+
+roles
 
 Change Log
 ==========

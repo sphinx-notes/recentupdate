@@ -2,7 +2,7 @@
 sphinxnotes.recentupdate
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-Get document change information from git log and Display in Sphinx documentation.
+Get the document update information from git and display it in Sphinx documentation.
 
 :copyright: Copyright 2021 Shengyu Zhang
 :license: BSD, see LICENSE for details.
@@ -78,12 +78,14 @@ class Environment(jinja2.Environment):
 @dataclass
 class Revision(object):
     """
-    A dataclass which represents a revision of Sphinx documentation.
-    One Revision is corresponding to one git commit.
+    Revision represents a git commit which contains document changes.
     """
 
+    #: Git commit message
     message:str
+    #: Git commit author
     author:str
+    #: Git commit author date
     date:datetime
 
     # FYI, possible status letters are:
@@ -208,16 +210,16 @@ class RecentUpdateDirective(SphinxDirective):
 
 DEFAULT_TEMPLATE = dedent('''
                           {% for r in revisions %}
-                          :{{ r.date }}:
-                          {% for m in r.modification %}
-                              - {{ r.author }} modified document :doc:`{{ m }}`
-                          {% endfor %}
-                          {% for a in r.addition %}
-                              - {{ r.author }} added document :doc:`{{ a }}`
-                          {% endfor %}
-                          {% for d in r.deletion %}
-                              - {{ r.author }} deleted document {{ d }}
-                          {% endfor %}
+                          :On {{ r.date | strftime }}, {{ r.author }}:
+                             {% if r.modification %}
+                             - Modified {{ r.modification | roles("doc") | join(", ") }}
+                             {% endif %}
+                             {% if r.addition %}
+                             - Added {{ r.addition | roles("doc") | join(", ") }}
+                             {% endif %}
+                             {% if r.deletion %}
+                             - Deleted {{ r.deletion | join(", ") }}
+                             {% endif %}
                           {% endfor %}
                           ''')
 
@@ -231,5 +233,5 @@ def setup(app:Sphinx) -> None:
 
     app.add_config_value('recentupdate_count', 10, 'env')
     app.add_config_value('recentupdate_template', DEFAULT_TEMPLATE, 'env')
-    app.add_config_value('recentupdate_date_format', None, 'env')
+    app.add_config_value('recentupdate_date_format', '%Y-%m-%d', 'env')
 

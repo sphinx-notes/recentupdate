@@ -36,12 +36,23 @@ extensions = [
     'recentupdate',
     'sphinx.ext.githubpages',
     'sphinxnotes.any',
+    'sphinx.ext.autodoc',
+    'sphinx.ext.intersphinx',
+
 ]
 
 sys.path.insert(0, os.path.abspath('.'))
 any_schemas = [
     __import__("confval").confval,
 ]
+
+intersphinx_mapping = {
+    'python': ('https://docs.python.org/3', None),
+}
+
+autoclass_content = 'class'
+autodoc_class_signature = 'separated'
+autodoc_typehints = 'description'
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -55,6 +66,9 @@ master_doc = 'index'
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
+
+# Provided by sphinxnotes.any
+primary_domain = 'any'
 
 # A boolean that decides whether codeauthor and sectionauthor directives
 # produce any output in the built files.

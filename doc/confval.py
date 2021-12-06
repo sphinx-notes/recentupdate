@@ -13,4 +13,5 @@ confval = Schema(
         :Default: ``{{ default}}``
 
         {{ content }}"""),
-    reference_template='⚙️{{ title }}')
+    reference_template='⚙️{{ title }}',
+    missing_reference_template='⚙️{{ title }}')

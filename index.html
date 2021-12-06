@@ -47,15 +47,30 @@
 </dd>
 </dl>
 <p>Get the document update information from git and display it in Sphinx documentation.</p>
+<p>This extensions provides a <a class="reference external" href="Functionalities">recentupdate</a> directive, which can show recent document update of current Sphinx documentation. The update information is read from <a class="reference external" href="https://git-scm.com/">Git</a> repository (So you must use Git to manage your documentation). You can customize the update information through generating reStructuredText from <a class="reference external" href="https://jinja.palletsprojects.com/en/3.0.x/templates/">Jinja</a> template.</p>
 <div class="contents local topic" id="contents">
 <ul class="simple">
 <li><p><a class="reference internal" href="#installation" id="id2">Installation</a></p></li>
-<li><p><a class="reference internal" href="#configuration" id="id3">Configuration</a></p></li>
-<li><p><a class="reference internal" href="#functionalities" id="id4">Functionalities</a></p></li>
-<li><p><a class="reference internal" href="#filters" id="id5">Filters</a></p></li>
-<li><p><a class="reference internal" href="#change-log" id="id6">Change Log</a></p>
+<li><p><a class="reference internal" href="#quick-start" id="id3">Quick Start</a></p></li>
+<li><p><a class="reference internal" href="#functionalities" id="id4">Functionalities</a></p>
 <ul>
-<li><p><a class="reference internal" href="#xx-xx-1-0a0" id="id7">2021-XX-XX 1.0a0</a></p></li>
+<li><p><a class="reference internal" href="#variables" id="id5">Variables</a></p>
+<ul>
+<li><p><a class="reference internal" href="#revisions" id="id6">{{ revisions }}</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#filters" id="id7">Filters</a></p>
+<ul>
+<li><p><a class="reference internal" href="#strftime" id="id8">strftime</a></p></li>
+<li><p><a class="reference internal" href="#roles" id="id9">roles</a></p></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#configuration" id="id10">Configuration</a></p></li>
+<li><p><a class="reference internal" href="#change-log" id="id11">Change Log</a></p>
+<ul>
+<li><p><a class="reference internal" href="#a0" id="id12">2021-12-06 1.0a0</a></p></li>
 </ul>
 </li>
 </ul>
@@ -75,8 +90,137 @@
 </pre></div>
 </div>
 </section>
+<section id="quick-start">
+<h2>Quick Start<a class="headerlink" href="#quick-start" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic">
+<li><p><a class="reference internal" href="#installation">Installation</a></p></li>
+<li><p>Add <code class="docutils literal notranslate"><span class="pre">recentupdate</span></code> directive to your document:</p>
+<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="p">..</span> <span class="ow">recentupdate</span><span class="p">::</span>
+</pre></div>
+</div>
+</li>
+<li><p>Build your document, The directive will be rendered to:</p>
+<dl class="field-list simple">
+<dt class="field-odd">On 2021-11-16, Shengyu Zhang</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p>Modified <a class="reference internal" href="#"><span class="doc">sphinxnotes.recentupdate</span></a></p></li>
+</ul>
+</dd>
+<dt class="field-even">On 2021-10-11, Shengyu Zhang</dt>
+<dd class="field-even"><ul class="simple">
+<li><p>Added <a class="reference internal" href="#"><span class="doc">sphinxnotes.recentupdate</span></a></p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ol>
+</section>
+<section id="functionalities">
+<h2>Functionalities<a class="headerlink" href="#functionalities" title="Permalink to this headline">¶</a></h2>
+<p>The extension provides a <code class="docutils literal notranslate"><span class="pre">recentupdate</span></code> directive:</p>
+<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="p">..</span> <span class="ow">recentupdate</span><span class="p">::</span> [count]
+
+   [jinja template]
+</pre></div>
+</div>
+<dl>
+<dt>count</dt><dd><p>The optional argument of directive is the count of recent “revisions” you want to show. Revision is a git commit which contains document changes.</p>
+<p>If no count given, value of <a class="reference internal" href="#confval-recentupdate_count" title="confval recentupdate_count"><code class="xref any any-confval docutils literal notranslate"><span class="pre">⚙️recentupdate_count</span></code></a> is used.</p>
+</dd>
+<dt>template</dt><dd><p>The optional content of directive is a jinja template for generating reStructuredText, in the template you can access <a class="reference external" href="https://jinja.palletsprojects.com/en/3.0.x/templates/#variables">Variables</a> named <a class="reference internal" href="#revisions">{{ revisions }}</a>.</p>
+<p>Beside, You can use <a class="reference external" href="https://jinja.palletsprojects.com/en/3.0.x/templates/#builtin-filters">Builtin Filters</a> and <a class="reference internal" href="#filters">Filters</a> provided by extensions.</p>
+<p>If no template given, value of <a class="reference internal" href="#confval-recentupdate_template" title="confval recentupdate_template"><code class="xref any any-confval docutils literal notranslate"><span class="pre">⚙️recentupdate_template</span></code></a> is used.</p>
+</dd>
+</dl>
+<section id="variables">
+<h3>Variables<a class="headerlink" href="#variables" title="Permalink to this headline">¶</a></h3>
+<p>All available <a class="reference external" href="https://jinja.palletsprojects.com/en/3.0.x/templates/#variables">variables</a>:</p>
+<section id="revisions">
+<h4>{{ revisions }}<a class="headerlink" href="#revisions" title="Permalink to this headline">¶</a></h4>
+<p><code class="docutils literal notranslate"><span class="pre">{{</span> <span class="pre">revisions</span> <span class="pre">}}</span></code> is an an array of revisions. The length of array is determined by the argument of`recentupdate &lt;Functionalities&gt;`_ directive.</p>
+<p>Here is the schema of array element:</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="recentupdate.Revision">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">recentupdate.</span></span><span class="sig-name descname"><span class="pre">Revision</span></span><a class="headerlink" href="#recentupdate.Revision" title="Permalink to this definition">¶</a></dt>
+<dd><p>Revision represents a git commit which contains document changes.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="recentupdate.Revision.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">author</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">date</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">addition</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">modification</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deletion</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#recentupdate.Revision.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>message</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – </p></li>
+<li><p><strong>author</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – </p></li>
+<li><p><strong>date</strong> (<a class="reference external" href="https://docs.python.org/3/library/datetime.html#datetime.datetime" title="(in Python v3.10)"><em>datetime.datetime</em></a>) – </p></li>
+<li><p><strong>addition</strong> (<em>List</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>]</em>) – </p></li>
+<li><p><strong>modification</strong> (<em>List</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>]</em>) – </p></li>
+<li><p><strong>deletion</strong> (<em>List</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>]</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="recentupdate.Revision.addition">
+<span class="sig-name descname"><span class="pre">addition</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#recentupdate.Revision.addition" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of docname, corresponding to files which are modified</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="recentupdate.Revision.author">
+<span class="sig-name descname"><span class="pre">author</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></em><a class="headerlink" href="#recentupdate.Revision.author" title="Permalink to this definition">¶</a></dt>
+<dd><p>Git commit author</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="recentupdate.Revision.date">
+<span class="sig-name descname"><span class="pre">date</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/datetime.html#datetime.datetime" title="(in Python v3.10)"><span class="pre">datetime.datetime</span></a></em><a class="headerlink" href="#recentupdate.Revision.date" title="Permalink to this definition">¶</a></dt>
+<dd><p>Git commit author date</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="recentupdate.Revision.deletion">
+<span class="sig-name descname"><span class="pre">deletion</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#recentupdate.Revision.deletion" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of docname, corresponding to files which are deleted</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="recentupdate.Revision.message">
+<span class="sig-name descname"><span class="pre">message</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></em><a class="headerlink" href="#recentupdate.Revision.message" title="Permalink to this definition">¶</a></dt>
+<dd><p>Git commit message</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="recentupdate.Revision.modification">
+<span class="sig-name descname"><span class="pre">modification</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#recentupdate.Revision.modification" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of docname, corresponding to files which are newly added</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+<section id="filters">
+<h3>Filters<a class="headerlink" href="#filters" title="Permalink to this headline">¶</a></h3>
+<section id="strftime">
+<h4>strftime<a class="headerlink" href="#strftime" title="Permalink to this headline">¶</a></h4>
+<p>Convert a <a class="reference external" href="https://docs.python.org/3/library/datetime.html#datetime.datetime" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">datetime.datetime</span></code></a> to string in given format.</p>
+<p>If no format given, use value of <a class="reference internal" href="#confval-recentupdate_date_format" title="confval recentupdate_date_format"><code class="xref any any-confval docutils literal notranslate"><span class="pre">⚙️recentupdate_date_format</span></code></a>.</p>
+<p>It is used in <a class="reference internal" href="#confval-recentupdate_template" title="confval recentupdate_template"><code class="xref any any-confval docutils literal notranslate"><span class="pre">default</span> <span class="pre">template</span></code></a>.</p>
+</section>
+<section id="roles">
+<h4>roles<a class="headerlink" href="#roles" title="Permalink to this headline">¶</a></h4>
+<p>Convert a list of string to list of reStructuredText roles.</p>
+<p><code class="docutils literal notranslate"><span class="pre">{{</span> <span class="pre">['foo',</span> <span class="pre">'bar']</span> <span class="pre">|</span> <span class="pre">roles(&quot;doc&quot;)</span> <span class="pre">}}</span></code> produces <code class="docutils literal notranslate"><span class="pre">[':doc:`foo`',</span> <span class="pre">':doc:`bar`']</span></code>.</p>
+<p>It is used in <a class="reference internal" href="#confval-recentupdate_template" title="confval recentupdate_template"><code class="xref any any-confval docutils literal notranslate"><span class="pre">default</span> <span class="pre">template</span></code></a>.</p>
+</section>
+</section>
+</section>
 <section id="configuration">
-<span id="id1"></span><h2>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h2>
+<h2>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h2>
 <p>The extension provides the following configuration:</p>
 <dl class="any">
 <dt class="sig sig-object any" id="confval-recentupdate_count">
@@ -89,6 +233,7 @@
 <dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">10</span></code></p>
 </dd>
 </dl>
+<p>The default count of recent revisions. See <a class="reference internal" href="#functionalities">Functionalities</a>.</p>
 </dd></dl>
 
 <dl class="any">
@@ -99,8 +244,25 @@
 <dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">string</span></code></p>
 </dd>
 <dt class="field-even">Default</dt>
-<dd class="field-even"><p></p></dd>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">see</span> <span class="pre">below</span></code></p>
+</dd>
 </dl>
+<p>The default Jinja template of update information. See <a class="reference internal" href="#functionalities">Functionalities</a>.</p>
+<p>Here is the default value:</p>
+<div class="highlight-jinja notranslate"><div class="highlight"><pre><span></span><span class="cp">{%</span> <span class="k">for</span> <span class="nv">r</span> <span class="k">in</span> <span class="nv">revisions</span> <span class="cp">%}</span><span class="x"></span>
+<span class="x">:On </span><span class="cp">{{</span> <span class="nv">r.date</span> <span class="o">|</span> <span class="nf">strftime</span> <span class="cp">}}</span><span class="x">, </span><span class="cp">{{</span> <span class="nv">r.author</span> <span class="cp">}}</span><span class="x">:</span>
+<span class="x">  </span><span class="cp">{%</span> <span class="k">if</span> <span class="nv">r.modification</span> <span class="cp">%}</span><span class="x"></span>
+<span class="x">  - Modified </span><span class="cp">{{</span> <span class="nv">r.modification</span> <span class="o">|</span> <span class="nf">roles</span><span class="o">(</span><span class="s2">&quot;doc&quot;</span><span class="o">)</span> <span class="o">|</span> <span class="nf">join</span><span class="o">(</span><span class="s2">&quot;, &quot;</span><span class="o">)</span> <span class="cp">}}</span><span class="x"></span>
+<span class="x">  </span><span class="cp">{%</span> <span class="k">endif</span> <span class="cp">%}</span><span class="x"></span>
+<span class="x">  </span><span class="cp">{%</span> <span class="k">if</span> <span class="nv">r.addition</span> <span class="cp">%}</span><span class="x"></span>
+<span class="x">  - Added </span><span class="cp">{{</span> <span class="nv">r.addition</span> <span class="o">|</span> <span class="nf">roles</span><span class="o">(</span><span class="s2">&quot;doc&quot;</span><span class="o">)</span> <span class="o">|</span> <span class="nf">join</span><span class="o">(</span><span class="s2">&quot;, &quot;</span><span class="o">)</span> <span class="cp">}}</span><span class="x"></span>
+<span class="x">  </span><span class="cp">{%</span> <span class="k">endif</span> <span class="cp">%}</span><span class="x"></span>
+<span class="x">  </span><span class="cp">{%</span> <span class="k">if</span> <span class="nv">r.deletion</span> <span class="cp">%}</span><span class="x"></span>
+<span class="x">  - Deleted </span><span class="cp">{{</span> <span class="nv">r.deletion</span> <span class="o">|</span> <span class="nf">join</span><span class="o">(</span><span class="s2">&quot;, &quot;</span><span class="o">)</span> <span class="cp">}}</span><span class="x"></span>
+<span class="x">  </span><span class="cp">{%</span> <span class="k">endif</span> <span class="cp">%}</span><span class="x"></span>
+<span class="cp">{%</span> <span class="k">endfor</span> <span class="cp">%}</span><span class="x"></span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="any">
@@ -114,44 +276,15 @@
 <dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">&quot;%Y-%m-%dT&quot;</span></code></p>
 </dd>
 </dl>
+<p>The default date format of <a class="reference internal" href="#strftime">strftime</a> filter.</p>
 </dd></dl>
 
 </section>
-<section id="functionalities">
-<h2>Functionalities<a class="headerlink" href="#functionalities" title="Permalink to this headline">¶</a></h2>
-<p>Use directive <code class="docutils literal notranslate"><span class="pre">..</span> <span class="pre">recentupdate::</span></code>.</p>
-<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="p">..</span> <span class="ow">topic</span><span class="p">::</span> Recent updates:
-
-<span class="p">   ..</span> <span class="ow">recentupdate</span><span class="p">::</span>
-</pre></div>
-</div>
-<p>Will be rendered to:</p>
-<div class="topic">
-<p class="topic-title">Recent updates:</p>
-<dl class="field-list simple">
-<dt class="field-odd">On 2021-11-16, Shengyu Zhang</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p>Modified <a class="reference internal" href="#"><span class="doc">sphinxnotes.recentupdate</span></a></p></li>
-</ul>
-</dd>
-<dt class="field-even">On 2021-10-11, Shengyu Zhang</dt>
-<dd class="field-even"><ul class="simple">
-<li><p>Added <a class="reference internal" href="#"><span class="doc">sphinxnotes.recentupdate</span></a></p></li>
-</ul>
-</dd>
-</dl>
-</div>
-</section>
-<section id="filters">
-<h2>Filters<a class="headerlink" href="#filters" title="Permalink to this headline">¶</a></h2>
-<p>strftime</p>
-<p>roles</p>
-</section>
 <section id="change-log">
 <h2>Change Log<a class="headerlink" href="#change-log" title="Permalink to this headline">¶</a></h2>
-<section id="xx-xx-1-0a0">
-<h3>2021-XX-XX 1.0a0<a class="headerlink" href="#xx-xx-1-0a0" title="Permalink to this headline">¶</a></h3>
-<p>PASS.</p>
+<section id="a0">
+<h3>2021-12-06 1.0a0<a class="headerlink" href="#a0" title="Permalink to this headline">¶</a></h3>
+<p>Release alpha version.</p>
 </section>
 </section>
 </section>
@@ -166,7 +299,7 @@
       &copy;2021, Shengyu Zhang.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.3.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.3.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

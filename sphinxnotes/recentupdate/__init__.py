@@ -179,7 +179,7 @@ class RecentUpdateDirective(SphinxDirective):
 
             revisions.append(Revision(message=commits[i].message,
                                       author=commits[i].author,
-                                      date=datetime.utcfromtimestamp(commits[i].authored_date),
+                                      date=datetime.utcfromtimestamp(commits[i-1].authored_date),
                                       modification=m,
                                       addition=a,
                                       deletion=d))

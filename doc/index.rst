@@ -138,7 +138,10 @@ The extension provides the following configuration:
    .. code:: jinja
 
       {% for r in revisions %}
-      :On {{ r.date | strftime }}, {{ r.author }}:
+      {{ r.date | strftime }}
+        :Author: {{ r.author }}
+        :Message: {{ r.message }}
+
         {% if r.modification %}
         - Modified {{ r.modification | roles("doc") | join(", ") }}
         {% endif %}

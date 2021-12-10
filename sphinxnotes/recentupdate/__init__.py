@@ -127,42 +127,41 @@ class RecentUpdateDirective(SphinxDirective):
 
 
     def _context(self, count: int) -> Dict[str,Any]:
-        assert(self.repo.head)
-
-        logger.debug("Intend to get recent %s commits", count)
-        # Get recent N commits (N = count)
-        ptr = self.repo.head.commit
-        commits = []
-        for i in range(0, count+1):
-            if ptr is None:
-                break
-            commits.append(ptr)
-            ptr = ptr.parents[0] if len(ptr.parents) != 0 else None
-        logger.debug("Get recent %s commits eventually", len(commits))
-
         revisions = []
-        rel_srcdir = path.relpath(self.env.srcdir, self.repo.working_dir) # Relative sphinx doc source dir
-        logger.debug("Relative srcdir: %s", rel_srcdir)
+        res = { 'revisions': revisions }
 
-        for i in range(1, len(commits)):
+        rel_srcdir = path.relpath(self.env.srcdir, self.repo.working_dir) # Relative sphinx doc source dir
+        logger.debug('Relative srcdir: %s', rel_srcdir)
+
+        cur = self.repo.head.commit
+        if cur is None:
+            return res
+
+        # Get recent N commits which contain document changes (N = count)
+        n = 0
+        while n < count:
+            prev = cur.parents[0] if len(cur.parents) != 0 else None
+            if prev is None:
+                break
+
             m = []
             a = []
             d = []
-            diff_idx = commits[i].tree.diff(commits[i-1])
+            diff_idx = prev.tree.diff(cur)
             for diff in diff_idx:
                 if not self._in_srcdir(rel_srcdir, diff.a_path):
                     # Skip files out of srcdir
-                    logger.debug("Skip %s: out of srcdir", diff.a_path)
+                    logger.debug('Skip %s: out of srcdir', diff.a_path)
                     continue
                 rel_a_path = path.relpath(diff.a_path, rel_srcdir)
                 docname, ext = path.splitext(rel_a_path)
                 source_suffix = list(self.config.source_suffix.keys())
                 if ext not in source_suffix:
                     # Skip non-source files
-                    logger.debug("Skip %s: not %s files", diff.a_path, source_suffix)
+                    logger.debug('Skip %s: not %s files', diff.a_path, source_suffix)
                     continue
 
-                logger.debug("doc %s, change_type %s", diff.a_path, diff.change_type)
+                logger.debug('doc %s, change_type %s', diff.a_path, diff.change_type)
                 if diff.change_type == 'M':
                     m.append(docname)
                 elif diff.change_type == 'A':
@@ -170,20 +169,26 @@ class RecentUpdateDirective(SphinxDirective):
                 elif diff.change_type == 'D':
                     d.append(docname)
                 else:
-                    logger.debug("Skip %s: unsupport change type %s", diff.a_path, diff.change_type)
+                    logger.debug('Skip %s: unsupport change type %s', diff.a_path, diff.change_type)
 
             if len(m) + len(a) + len(d) == 0:
                 # Dont create revisions when no document changes
-                logger.debug("Skip commit %s: no document changes", commits[i].hexsha)
+                logger.debug('Skip commit %s: no document changes', cur.hexsha)
+                cur = prev
                 continue
 
-            revisions.append(Revision(message=commits[i].message,
-                                      author=commits[i].author,
-                                      date=datetime.utcfromtimestamp(commits[i-1].authored_date),
+            revisions.append(Revision(message=cur.message,
+                                      author=cur.author,
+                                      date=datetime.utcfromtimestamp(cur.authored_date),
                                       modification=m,
                                       addition=a,
                                       deletion=d))
-        return { 'revisions': revisions }
+            cur = prev
+            n += 1
+
+        logger.debug(f'Intend to get recent {count} commits, eventually get {n}')
+
+        return res
 
 
     def run(self) -> List[nodes.Node]:
@@ -199,7 +204,7 @@ class RecentUpdateDirective(SphinxDirective):
             template = env.from_string('\n'.join(list(self.content)) or self.config.recentupdate_template)
             lines = template.render(self._context(count)).split('\n')
         except Exception as e:
-            msg = "failed to render recentupdate template: %s" % e
+            msg = f'failed to render recentupdate template: {e}'
             logger.warning(msg, location=self.state.parent)
             sm = nodes.system_message(msg, type='WARNING', level=2, backrefs=[], source='')
             return [sm]
@@ -210,16 +215,19 @@ class RecentUpdateDirective(SphinxDirective):
 
 DEFAULT_TEMPLATE = dedent('''
                           {% for r in revisions %}
-                          :On {{ r.date | strftime }}, {{ r.author }}:
-                             {% if r.modification %}
-                             - Modified {{ r.modification | roles("doc") | join(", ") }}
-                             {% endif %}
-                             {% if r.addition %}
-                             - Added {{ r.addition | roles("doc") | join(", ") }}
-                             {% endif %}
-                             {% if r.deletion %}
-                             - Deleted {{ r.deletion | join(", ") }}
-                             {% endif %}
+                          {{ r.date | strftime }}
+                            :Author: {{ r.author }}
+                            :Message: {{ r.message }}
+
+                            {% if r.modification %}
+                            - Modified {{ r.modification | roles("doc") | join(", ") }}
+                            {% endif %}
+                            {% if r.addition %}
+                            - Added {{ r.addition | roles("doc") | join(", ") }}
+                            {% endif %}
+                            {% if r.deletion %}
+                            - Deleted {{ r.deletion | join(", ") }}
+                            {% endif %}
                           {% endfor %}
                           ''')
 

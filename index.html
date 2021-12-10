@@ -100,14 +100,40 @@
 </div>
 </li>
 <li><p>Build your document, The directive will be rendered to:</p>
-<dl class="field-list simple">
-<dt class="field-odd">On 2021-12-06, Shengyu Zhang</dt>
-<dd class="field-odd"><ul class="simple">
+<dl>
+<dt>2021-12-10</dt><dd><dl class="field-list simple">
+<dt class="field-odd">Author</dt>
+<dd class="field-odd"><p>Shengyu Zhang</p>
+</dd>
+<dt class="field-even">Message</dt>
+<dd class="field-even"><p>doc: Update default template</p>
+</dd>
+</dl>
+<ul class="simple">
 <li><p>Modified <a class="reference internal" href="#"><span class="doc">sphinxnotes.recentupdate</span></a></p></li>
 </ul>
 </dd>
-<dt class="field-even">On 2021-10-12, Shengyu Zhang</dt>
-<dd class="field-even"><ul class="simple">
+<dt>2021-12-06</dt><dd><dl class="field-list simple">
+<dt class="field-odd">Author</dt>
+<dd class="field-odd"><p>Shengyu Zhang</p>
+</dd>
+<dt class="field-even">Message</dt>
+<dd class="field-even"><p>doc: Complete README</p>
+</dd>
+</dl>
+<ul class="simple">
+<li><p>Modified <a class="reference internal" href="#"><span class="doc">sphinxnotes.recentupdate</span></a></p></li>
+</ul>
+</dd>
+<dt>2021-10-12</dt><dd><dl class="field-list simple">
+<dt class="field-odd">Author</dt>
+<dd class="field-odd"><p>Shengyu Zhang</p>
+</dd>
+<dt class="field-even">Message</dt>
+<dd class="field-even"><p>Project init</p>
+</dd>
+</dl>
+<ul class="simple">
 <li><p>Added <a class="reference internal" href="#"><span class="doc">sphinxnotes.recentupdate</span></a></p></li>
 </ul>
 </dd>
@@ -250,7 +276,10 @@
 <p>The default Jinja template of update information. See <a class="reference internal" href="#functionalities">Functionalities</a>.</p>
 <p>Here is the default value:</p>
 <div class="highlight-jinja notranslate"><div class="highlight"><pre><span></span><span class="cp">{%</span> <span class="k">for</span> <span class="nv">r</span> <span class="k">in</span> <span class="nv">revisions</span> <span class="cp">%}</span><span class="x"></span>
-<span class="x">:On </span><span class="cp">{{</span> <span class="nv">r.date</span> <span class="o">|</span> <span class="nf">strftime</span> <span class="cp">}}</span><span class="x">, </span><span class="cp">{{</span> <span class="nv">r.author</span> <span class="cp">}}</span><span class="x">:</span>
+<span class="cp">{{</span> <span class="nv">r.date</span> <span class="o">|</span> <span class="nf">strftime</span> <span class="cp">}}</span><span class="x"></span>
+<span class="x">  :Author: </span><span class="cp">{{</span> <span class="nv">r.author</span> <span class="cp">}}</span><span class="x"></span>
+<span class="x">  :Message: </span><span class="cp">{{</span> <span class="nv">r.message</span> <span class="cp">}}</span><span class="x"></span>
+
 <span class="x">  </span><span class="cp">{%</span> <span class="k">if</span> <span class="nv">r.modification</span> <span class="cp">%}</span><span class="x"></span>
 <span class="x">  - Modified </span><span class="cp">{{</span> <span class="nv">r.modification</span> <span class="o">|</span> <span class="nf">roles</span><span class="o">(</span><span class="s2">&quot;doc&quot;</span><span class="o">)</span> <span class="o">|</span> <span class="nf">join</span><span class="o">(</span><span class="s2">&quot;, &quot;</span><span class="o">)</span> <span class="cp">}}</span><span class="x"></span>
 <span class="x">  </span><span class="cp">{%</span> <span class="k">endif</span> <span class="cp">%}</span><span class="x"></span>

@@ -35,7 +35,7 @@ import jinja2
 
 __title__= 'sphinxnotes-recentupdate'
 __license__ = 'BSD'
-__version__ = '1.0a1'
+__version__ = '1.0a2'
 __author__ = 'Shengyu Zhang'
 __url__ = 'https://sphinx-notes.github.io/recentupdate'
 __description__ = 'Get document change information from git log and Display in Sphinx documentation'

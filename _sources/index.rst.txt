@@ -128,7 +128,7 @@ The extension provides the following configuration:
    The default count of recent revisions. See Functionalities_.
 
 .. confval:: recentupdate_template
-   :type: string
+   :type: str
    :default: see below
 
    The default Jinja template of update information. See Functionalities_.
@@ -154,10 +154,16 @@ The extension provides the following configuration:
       {% endfor %}
 
 .. confval:: recentupdate_date_format
-   :type: string
+   :type: str
    :default: "%Y-%m-%dT"
 
    The default date format of strftime_ filter.
+
+.. confval:: recentupdate_exclude_path
+   :type: List[str]
+   :default: []
+
+   A list of path that should be excluded when looking for file changes. 
 
 Change Log
 ==========

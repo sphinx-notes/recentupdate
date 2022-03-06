@@ -123,8 +123,8 @@ class RecentUpdateDirective(SphinxDirective):
     def _get_docname(self, relfn_to_repo: str) -> Optional[str]:
         relsrcdir_to_repo = path.relpath(self.env.srcdir, self.repo.working_dir)
         relfn_to_srcdir = path.relpath(relfn_to_repo, relsrcdir_to_repo)
-
-        if path.commonpath([self.env.srcdir, path.abspath(relfn_to_srcdir)]) != self.env.srcdir:
+        absfn = path.abspath(relfn_to_srcdir)
+        if path.commonpath([self.env.srcdir, absfn]) != self.env.srcdir:
             logger.debug(f'Skip {relfn_to_repo}: out of srcdir')
             return None
 
@@ -138,6 +138,12 @@ class RecentUpdateDirective(SphinxDirective):
         if not ext or ext not in source_suffix:
             logger.debug(f'Skip {relfn_to_repo}: not {source_suffix} files')
             return None
+
+        for p in self.config.recentupdate_exclude_path:
+            absp = path.abspath(p)
+            if path.commonpath([absp, absfn]) == absp:
+                logger.debug(f'Skip {relfn_to_repo}: excluded by recentupdate_exclude_path confval')
+                return None
 
         logger.debug(f'Get docname: {docname}')
         return docname
@@ -248,5 +254,6 @@ def setup(app:Sphinx):
     app.add_config_value('recentupdate_count', 10, 'env')
     app.add_config_value('recentupdate_template', DEFAULT_TEMPLATE, 'env')
     app.add_config_value('recentupdate_date_format', '%Y-%m-%d', 'env')
+    app.add_config_value('recentupdate_exclude_path', [], 'env')
 
     return {'version': __version__}

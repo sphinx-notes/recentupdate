@@ -9,7 +9,7 @@ Get the document update information from git and display it in Sphinx documentat
 """
 
 from __future__ import annotations
-from typing import List, Iterable, TYPE_CHECKING
+from typing import List, Iterable, TYPE_CHECKING, Optional
 from textwrap import dedent
 from datetime import datetime
 from enum import Enum, auto
@@ -24,6 +24,7 @@ from docutils.utils import new_document
 from sphinx.util import logging
 from sphinx.util.docutils import SphinxDirective
 from sphinx.util.nodes import nested_parse_with_titles
+from sphinx.util.matching import Matcher
 from sphinx.transforms import SphinxTransform
 if TYPE_CHECKING:
     from sphinx.application import Sphinx
@@ -119,19 +120,32 @@ class RecentUpdateDirective(SphinxDirective):
     #: Repo info
     repo:Repo = None
 
-    @staticmethod
-    def _in_srcdir(rel_srcdir: str, rel_fn: str) -> bool:
-        srcdir = path.abspath(rel_srcdir)
-        fn = path.abspath(rel_fn)
-        return path.commonpath([srcdir, fn]) == srcdir
+    def _get_docname(self, relfn_to_repo: str) -> Optional[str]:
+        relsrcdir_to_repo = path.relpath(self.env.srcdir, self.repo.working_dir)
+        relfn_to_srcdir = path.relpath(relfn_to_repo, relsrcdir_to_repo)
+
+        if path.commonpath([self.env.srcdir, path.abspath(relfn_to_srcdir)]) != self.env.srcdir:
+            logger.debug(f'Skip {relfn_to_repo}: out of srcdir')
+            return None
+
+        excluded = Matcher(self.config.exclude_patterns)
+        if excluded(relfn_to_srcdir):
+            logger.debug(f'Skip {relfn_to_repo}: excluded by exclude_patterns confval')
+            return None
+
+        docname, ext = path.splitext(relfn_to_srcdir)
+        source_suffix = list(self.config.source_suffix.keys())
+        if not ext or ext not in source_suffix:
+            logger.debug(f'Skip {relfn_to_repo}: not {source_suffix} files')
+            return None
+
+        logger.debug(f'Get docname: {docname}')
+        return docname
 
 
     def _context(self, count: int) -> Dict[str,Any]:
         revisions = []
         res = { 'revisions': revisions }
-
-        rel_srcdir = path.relpath(self.env.srcdir, self.repo.working_dir) # Relative sphinx doc source dir
-        logger.debug('Relative srcdir: %s', rel_srcdir)
 
         cur = self.repo.head.commit
         if cur is None:
@@ -149,19 +163,11 @@ class RecentUpdateDirective(SphinxDirective):
             d = []
             diff_idx = prev.tree.diff(cur)
             for diff in diff_idx:
-                if not self._in_srcdir(rel_srcdir, diff.a_path):
+                docname = self._get_docname(diff.a_path)
+                if docname is None:
                     # Skip files out of srcdir
-                    logger.debug('Skip %s: out of srcdir', diff.a_path)
-                    continue
-                rel_a_path = path.relpath(diff.a_path, rel_srcdir)
-                docname, ext = path.splitext(rel_a_path)
-                source_suffix = list(self.config.source_suffix.keys())
-                if ext not in source_suffix:
-                    # Skip non-source files
-                    logger.debug('Skip %s: not %s files', diff.a_path, source_suffix)
                     continue
 
-                logger.debug('doc %s, change_type %s', diff.a_path, diff.change_type)
                 if diff.change_type == 'M':
                     m.append(docname)
                 elif diff.change_type == 'A':
@@ -169,11 +175,11 @@ class RecentUpdateDirective(SphinxDirective):
                 elif diff.change_type == 'D':
                     d.append(docname)
                 else:
-                    logger.debug('Skip %s: unsupport change type %s', diff.a_path, diff.change_type)
+                    logger.debug(f'Skip {diff.a_path}: unsupport change type {diff.change_type}')
 
             if len(m) + len(a) + len(d) == 0:
                 # Dont create revisions when no document changes
-                logger.debug('Skip commit %s: no document changes', cur.hexsha)
+                logger.debug(f'Skip commit {cur.hexsha}: no document changes')
                 cur = prev
                 continue
 
@@ -242,4 +248,3 @@ def setup(app:Sphinx) -> None:
     app.add_config_value('recentupdate_count', 10, 'env')
     app.add_config_value('recentupdate_template', DEFAULT_TEMPLATE, 'env')
     app.add_config_value('recentupdate_date_format', '%Y-%m-%d', 'env')
-

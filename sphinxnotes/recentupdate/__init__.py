@@ -237,7 +237,7 @@ DEFAULT_TEMPLATE = dedent('''
                           {% endfor %}
                           ''')
 
-def setup(app:Sphinx) -> None:
+def setup(app:Sphinx):
     """Sphinx extension entrypoint."""
 
     # Set current git repo
@@ -248,3 +248,5 @@ def setup(app:Sphinx) -> None:
     app.add_config_value('recentupdate_count', 10, 'env')
     app.add_config_value('recentupdate_template', DEFAULT_TEMPLATE, 'env')
     app.add_config_value('recentupdate_date_format', '%Y-%m-%d', 'env')
+
+    return {'version': __version__}

@@ -164,6 +164,12 @@ class RecentUpdateDirective(SphinxDirective):
             if prev is None:
                 break
 
+            matches = [x in cur.message for x in self.config.recentupdate_exclude_commit]
+            if any(matches):
+                logger.debug(f'Skip commit {cur.hexsha}: excluded by recentupdate_exclude_commit confval')
+                cur = prev
+                continue
+
             m = []
             a = []
             d = []
@@ -255,5 +261,6 @@ def setup(app:Sphinx):
     app.add_config_value('recentupdate_template', DEFAULT_TEMPLATE, 'env')
     app.add_config_value('recentupdate_date_format', '%Y-%m-%d', 'env')
     app.add_config_value('recentupdate_exclude_path', [], 'env')
+    app.add_config_value('recentupdate_exclude_commit', ['skip-recentupdate'], 'env')
 
     return {'version': __version__}

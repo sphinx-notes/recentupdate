@@ -165,6 +165,12 @@ The extension provides the following configuration:
 
    A list of path that should be excluded when looking for file changes. 
 
+.. confval:: recentupdate_exclude_commit
+   :type: List[str]
+   :default: ["skip-recentupdate"]
+
+   A list of commit message pattern that should be excluded when looking for file changes. 
+
 Change Log
 ==========
 

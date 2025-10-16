@@ -9,43 +9,29 @@ Get the document update information from git and display it in Sphinx documentat
 """
 
 from __future__ import annotations
-from typing import List, Iterable, TYPE_CHECKING, Optional
+from typing import Iterable, TYPE_CHECKING
 from textwrap import dedent
 from datetime import datetime
-from enum import Enum, auto
 from dataclasses import dataclass
 from os import path
 
 from docutils import nodes
 from docutils.statemachine import StringList
-from docutils.parsers.rst import directives, Parser
-from docutils.utils import new_document
+from docutils.parsers.rst import directives
 
 from sphinx.util import logging
 from sphinx.util.docutils import SphinxDirective
 from sphinx.util.nodes import nested_parse_with_titles
 from sphinx.util.matching import Matcher
-from sphinx.transforms import SphinxTransform
 
 if TYPE_CHECKING:
     from sphinx.application import Sphinx
-    from sphinx.config import Config
-    from sphinx.environment import BuildEnvironment
 
 from git import Repo
 import jinja2
 
 from . import meta
 
-__title__ = 'sphinxnotes-recentupdate'
-__license__ = 'BSD'
-__version__ = '1.0b2'
-__author__ = 'Shengyu Zhang'
-__url__ = 'https://sphinx-notes.github.io/recentupdate'
-__description__ = (
-    'Get document change information from git log and Display in Sphinx documentation'
-)
-__keywords__ = 'documentation, sphinx, extension, rss, git'
 
 logger = logging.getLogger(__name__)
 
@@ -105,11 +91,11 @@ class Revision(object):
     # :X: "unknown" change type (most probably a bug, please report it)
 
     #: List of docname, corresponding to files which are modified
-    addition: List[str]
+    addition: list[str]
     #: List of docname, corresponding to files which are newly added
-    modification: List[str]
+    modification: list[str]
     #: List of docname, corresponding to files which are deleted
-    deletion: List[str]
+    deletion: list[str]
 
 
 class RecentUpdateDirective(SphinxDirective):
@@ -125,7 +111,7 @@ class RecentUpdateDirective(SphinxDirective):
     #: Repo info
     repo: Repo = None
 
-    def _get_docname(self, relfn_to_repo: str) -> Optional[str]:
+    def _get_docname(self, relfn_to_repo: str) -> str | None:
         relsrcdir_to_repo = path.relpath(self.env.srcdir, self.repo.working_dir)
         relfn_to_srcdir = path.relpath(relfn_to_repo, relsrcdir_to_repo)
         absfn = path.abspath(relfn_to_srcdir)
@@ -155,7 +141,7 @@ class RecentUpdateDirective(SphinxDirective):
         logger.debug(f'Get docname: {docname}')
         return docname
 
-    def _context(self, count: int) -> Dict[str, Any]:
+    def _context(self, count: int) -> dict[str, any]:
         revisions = []
         res = {'revisions': revisions}
 
@@ -220,7 +206,7 @@ class RecentUpdateDirective(SphinxDirective):
 
         return res
 
-    def run(self) -> List[nodes.Node]:
+    def run(self) -> list[nodes.Node]:
         if len(self.arguments) >= 1:
             count = directives.nonnegative_int(self.arguments[0])
         else:

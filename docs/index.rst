@@ -30,7 +30,7 @@ Introduction
 
 Get the document update information from git and display it in Sphinx documentation.
 
-This extensions provides a :doc:`recentupdate <usgae>`_ directive, which can show recent document update of current Sphinx documentation. The update information is read from Git_ repository (So you must use Git to manage your documentation). You can customize the update information through generating reStructuredText from Jinja_ template.
+This extensions provides a :doc:`recentupdate <usage>` directive, which can show recent document update of current Sphinx documentation. The update information is read from Git_ repository (So you must use Git to manage your documentation). You can customize the update information through generating reStructuredText from Jinja_ template.
 
 .. _Git: https://git-scm.com/
 .. _Jinja: https://jinja.palletsprojects.com/en/3.0.x/templates/
@@ -69,14 +69,12 @@ Then, add the extension name to ``extensions`` configuration item in your
 
 .. ADDITIONAL CONTENT START
 
-Add ``recentupdate`` directive to your document, Build your document, the directive will be rendered to:
+Add ``recentupdate`` directive to your document, build your document, the directive will be rendered to:
 
 .. example::
    :style: grid
 
    .. recentupdate::
-
-.. recentupdate::
 
 .. ADDITIONAL CONTENT END
 

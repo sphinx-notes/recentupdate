@@ -8,13 +8,13 @@ The extension provides the following configuration:
    :type: int
    :default: 10
 
-   The default count of recent revisions. See Functionalities_.
+   The default count of recent revisions. See :doc:`usage`.
 
 .. confval:: recentupdate_template
    :type: str
    :default: see below
 
-   The default Jinja template of update information. See Functionalities_.
+   The default Jinja template of update information. See :doc:`usage`.
 
    Here is the default value:
 
@@ -40,7 +40,7 @@ The extension provides the following configuration:
    :type: str
    :default: "%Y-%m-%dT"
 
-   The default date format of strftime_ filter.
+   The default date format of :ref:`strftime` filter.
 
 .. confval:: recentupdate_exclude_path
    :type: List[str]

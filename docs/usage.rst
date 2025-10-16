@@ -34,7 +34,7 @@ All available variables_:
 {{ revisions }}
 ---------------
 
-``{{ revisions }}`` is an an array of revisions. The length of array is determined by the argument of`recentupdate <Functionalities>`_ directive.
+``{{ revisions }}`` is an an array of revisions. The length of array is determined by the argument of ``recentupdate`` directive.
 
 Here is the schema of array element:
 
@@ -43,6 +43,8 @@ Here is the schema of array element:
 
 Filters
 =======
+
+.. _strftime:
 
 strftime
 --------

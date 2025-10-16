@@ -21,5 +21,9 @@ jobs:
       pages: write
       id-token: write
     steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
     - id: deployment
       uses: sphinx-notes/pages@v3
+      checkout: false

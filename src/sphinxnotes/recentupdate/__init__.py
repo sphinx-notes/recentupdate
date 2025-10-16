@@ -14,6 +14,7 @@ from textwrap import dedent
 from datetime import datetime
 from dataclasses import dataclass
 from os import path
+from pathlib import Path
 
 from docutils import nodes
 from docutils.statemachine import StringList
@@ -115,7 +116,7 @@ class RecentUpdateDirective(SphinxDirective):
         relsrcdir_to_repo = path.relpath(self.env.srcdir, self.repo.working_dir)
         relfn_to_srcdir = path.relpath(relfn_to_repo, relsrcdir_to_repo)
         absfn = path.abspath(relfn_to_srcdir)
-        if path.commonpath([self.env.srcdir, absfn]) != self.env.srcdir:
+        if Path(path.commonpath([self.env.srcdir, absfn])) != self.env.srcdir:
             logger.debug(f'Skip {relfn_to_repo}: out of srcdir')
             return None
 

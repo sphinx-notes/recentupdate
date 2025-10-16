@@ -43,6 +43,8 @@ dependencies = [
     "Sphinx >= 7.0",
 
     # CUSTOM DEPENDENCIES START
+    "GitPython",
+    "Jinja2",
     # CUSTOM DEPENDENCIES END
 ]
 

@@ -22,6 +22,11 @@ Change Log
 Version 1.x
 ===========
 
+.. version:: 1.0
+   :date: 2025-10-17
+
+   First stable version after five years :-)
+
 .. version:: 1.0a0
    :date: 2021-12-06 
 

@@ -157,9 +157,13 @@ class RecentUpdateDirective(SphinxDirective):
             if prev is None:
                 break
 
-            matches = [x in cur.message for x in self.config.recentupdate_exclude_commit]
+            matches = [
+                x in cur.message for x in self.config.recentupdate_exclude_commit
+            ]
             if any(matches):
-                logger.debug(f'Skip commit {cur.hexsha}: excluded by recentupdate_exclude_commit confval')
+                logger.debug(
+                    f'Skip commit {cur.hexsha}: excluded by recentupdate_exclude_commit confval'
+                )
                 cur = prev
                 continue
 
@@ -203,7 +207,9 @@ class RecentUpdateDirective(SphinxDirective):
             cur = prev
             n += 1
 
-        logger.debug(f'Intend to get recent {count} commits, eventually get {n}')
+        logger.warning(
+            f'[recentupdate] Intend to get recent {count} commits, eventually get {n}'
+        )
 
         return res
 

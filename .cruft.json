@@ -1,0 +1,27 @@
+{
+  "template": "https://github.com/sphinx-notes/cookiecutter",
+  "commit": "800a79a06f9a67494516bc14bcda85b3472dcac9",
+  "checkout": null,
+  "context": {
+    "cookiecutter": {
+      "namespace": "sphinxnotes",
+      "name": "recentupdate",
+      "full_name": "sphinxnotes-recentupdate",
+      "author": "Shengyu Zhang",
+      "description": "Get the document update information from git and display it in Sphinx documentation",
+      "version": "1.0a2",
+      "github_owner": "sphinx-notes",
+      "github_repo": "recentupdate",
+      "pypi_name": "sphinxnotes-recentupdate",
+      "pypi_owner": "SilverRainZ",
+      "is_python_project": true,
+      "python_version": "3.12",
+      "is_sphinx_extension": true,
+      "sphinx_version": "7.0",
+      "development_status": "3 - Alpha",
+      "_template": "https://github.com/sphinx-notes/cookiecutter",
+      "_commit": "800a79a06f9a67494516bc14bcda85b3472dcac9"
+    }
+  },
+  "directory": null
+}

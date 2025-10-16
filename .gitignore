@@ -128,5 +128,10 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
+# Poetry
+poetry.lock
+
 # Sphinx
-doc/_build/
+docs/_build/
+# sphinxnotes-any >= 2.5
+docs/.any*

@@ -26,6 +26,7 @@ from sphinx.util.docutils import SphinxDirective
 from sphinx.util.nodes import nested_parse_with_titles
 from sphinx.util.matching import Matcher
 from sphinx.transforms import SphinxTransform
+
 if TYPE_CHECKING:
     from sphinx.application import Sphinx
     from sphinx.config import Config
@@ -34,21 +35,25 @@ if TYPE_CHECKING:
 from git import Repo
 import jinja2
 
-__title__= 'sphinxnotes-recentupdate'
+from . import meta
+
+__title__ = 'sphinxnotes-recentupdate'
 __license__ = 'BSD'
 __version__ = '1.0b2'
 __author__ = 'Shengyu Zhang'
 __url__ = 'https://sphinx-notes.github.io/recentupdate'
-__description__ = 'Get document change information from git log and Display in Sphinx documentation'
+__description__ = (
+    'Get document change information from git log and Display in Sphinx documentation'
+)
 __keywords__ = 'documentation, sphinx, extension, rss, git'
 
 logger = logging.getLogger(__name__)
 
 
 class Environment(jinja2.Environment):
-    datefmt:str
+    datefmt: str
 
-    def __init__(self, datefmt:str, *args, **kwargs):
+    def __init__(self, datefmt: str, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.datefmt = datefmt
         self.filters['strftime'] = self._strftime_filter
@@ -63,7 +68,7 @@ class Environment(jinja2.Environment):
             format = self.datefmt
         return value.strftime(format)
 
-    def _roles_filter(self, value:Iterable[str], role:str) -> Iterable[str]:
+    def _roles_filter(self, value: Iterable[str], role: str) -> Iterable[str]:
         """
         A heplfer filter for converting list of string to list of role.
 
@@ -83,11 +88,11 @@ class Revision(object):
     """
 
     #: Git commit message
-    message:str
+    message: str
     #: Git commit author
-    author:str
+    author: str
     #: Git commit author date
-    date:datetime
+    date: datetime
 
     # FYI, possible status letters are:
     # :A: addition of a file
@@ -100,25 +105,25 @@ class Revision(object):
     # :X: "unknown" change type (most probably a bug, please report it)
 
     #: List of docname, corresponding to files which are modified
-    addition:List[str]
+    addition: List[str]
     #: List of docname, corresponding to files which are newly added
-    modification:List[str]
+    modification: List[str]
     #: List of docname, corresponding to files which are deleted
-    deletion:List[str]
+    deletion: List[str]
 
 
 class RecentUpdateDirective(SphinxDirective):
-    """ Directive for displaying recent update.  """
+    """Directive for displaying recent update."""
 
     # Member of parent
-    has_content:bool = True
-    required_arguments:int = 0
-    optional_arguments:int = 1
-    final_argument_whitespace:bool = False
+    has_content: bool = True
+    required_arguments: int = 0
+    optional_arguments: int = 1
+    final_argument_whitespace: bool = False
     option_spec = {}
 
     #: Repo info
-    repo:Repo = None
+    repo: Repo = None
 
     def _get_docname(self, relfn_to_repo: str) -> Optional[str]:
         relsrcdir_to_repo = path.relpath(self.env.srcdir, self.repo.working_dir)
@@ -142,16 +147,17 @@ class RecentUpdateDirective(SphinxDirective):
         for p in self.config.recentupdate_exclude_path:
             absp = path.abspath(p)
             if path.commonpath([absp, absfn]) == absp:
-                logger.debug(f'Skip {relfn_to_repo}: excluded by recentupdate_exclude_path confval')
+                logger.debug(
+                    f'Skip {relfn_to_repo}: excluded by recentupdate_exclude_path confval'
+                )
                 return None
 
         logger.debug(f'Get docname: {docname}')
         return docname
 
-
-    def _context(self, count: int) -> Dict[str,Any]:
+    def _context(self, count: int) -> Dict[str, Any]:
         revisions = []
-        res = { 'revisions': revisions }
+        res = {'revisions': revisions}
 
         cur = self.repo.head.commit
         if cur is None:
@@ -187,7 +193,9 @@ class RecentUpdateDirective(SphinxDirective):
                 elif diff.change_type == 'D':
                     d.append(docname)
                 else:
-                    logger.debug(f'Skip {diff.a_path}: unsupport change type {diff.change_type}')
+                    logger.warning(
+                        f'Skip {diff.a_path}: unsupport change type {diff.change_type}'
+                    )
 
             if len(m) + len(a) + len(d) == 0:
                 # Dont create revisions when no document changes
@@ -195,19 +203,22 @@ class RecentUpdateDirective(SphinxDirective):
                 cur = prev
                 continue
 
-            revisions.append(Revision(message=cur.message,
-                                      author=cur.author,
-                                      date=datetime.utcfromtimestamp(cur.authored_date),
-                                      modification=m,
-                                      addition=a,
-                                      deletion=d))
+            revisions.append(
+                Revision(
+                    message=cur.message,
+                    author=cur.author,
+                    date=datetime.utcfromtimestamp(cur.authored_date),
+                    modification=m,
+                    addition=a,
+                    deletion=d,
+                )
+            )
             cur = prev
             n += 1
 
         logger.debug(f'Intend to get recent {count} commits, eventually get {n}')
 
         return res
-
 
     def run(self) -> List[nodes.Node]:
         if len(self.arguments) >= 1:
@@ -219,19 +230,23 @@ class RecentUpdateDirective(SphinxDirective):
         env = Environment(self.config.recentupdate_date_format)
 
         try:
-            template = env.from_string('\n'.join(list(self.content)) or self.config.recentupdate_template)
+            template = env.from_string(
+                '\n'.join(list(self.content)) or self.config.recentupdate_template
+            )
             lines = template.render(self._context(count)).split('\n')
         except Exception as e:
             msg = f'failed to render recentupdate template: {e}'
             logger.warning(msg, location=self.state.parent)
-            sm = nodes.system_message(msg, type='WARNING', level=2, backrefs=[], source='')
+            sm = nodes.system_message(
+                msg, type='WARNING', level=2, backrefs=[], source=''
+            )
             return [sm]
         else:
             nested_parse_with_titles(self.state, StringList(lines), self.state.parent)
             return []
 
 
-DEFAULT_TEMPLATE = dedent('''
+DEFAULT_TEMPLATE = dedent("""
                           {% for r in revisions %}
                           {{ r.date | strftime }}
                             :Author: {{ r.author }}
@@ -247,10 +262,12 @@ DEFAULT_TEMPLATE = dedent('''
                             - Deleted {{ r.deletion | join(", ") }}
                             {% endif %}
                           {% endfor %}
-                          ''')
+                          """)
 
-def setup(app:Sphinx):
+
+def setup(app: Sphinx):
     """Sphinx extension entrypoint."""
+    meta.pre_setup(app)
 
     # Set current git repo
     RecentUpdateDirective.repo = Repo(app.srcdir, search_parent_directories=True)
@@ -263,4 +280,4 @@ def setup(app:Sphinx):
     app.add_config_value('recentupdate_exclude_path', [], 'env')
     app.add_config_value('recentupdate_exclude_commit', ['skip-recentupdate'], 'env')
 
-    return {'version': __version__}
+    return meta.post_setup(app)

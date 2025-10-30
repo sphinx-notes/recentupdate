@@ -115,8 +115,8 @@ class RecentUpdateDirective(SphinxDirective):
     def _get_docname(self, relfn_to_repo: str) -> str | None:
         relsrcdir_to_repo = path.relpath(self.env.srcdir, self.repo.working_dir)
         relfn_to_srcdir = path.relpath(relfn_to_repo, relsrcdir_to_repo)
-        absfn = path.abspath(relfn_to_srcdir)
-        if Path(path.commonpath([self.env.srcdir, absfn])) != self.env.srcdir:
+        absfn = Path(self.repo.working_dir, relfn_to_repo)
+        if not absfn.is_relative_to(self.env.srcdir):
             logger.debug(f'Skip {relfn_to_repo}: out of srcdir')
             return None
 
@@ -132,10 +132,10 @@ class RecentUpdateDirective(SphinxDirective):
             return None
 
         for p in self.config.recentupdate_exclude_path:
-            absp = path.abspath(p)
-            if path.commonpath([absp, absfn]) == absp:
+            exclude_path = Path(self.env.srcdir, p)
+            if absfn.is_relative_to(exclude_path):
                 logger.debug(
-                    f'Skip {relfn_to_repo}: excluded by recentupdate_exclude_path confval'
+                    f'Skip {relfn_to_repo}: excluded by path {exclude_path}'
                 )
                 return None
 

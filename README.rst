@@ -15,7 +15,7 @@ sphinxnotes-recentupdate
    :target: https://pypi.python.org/pypi/sphinxnotes-recentupdate
    :alt: PyPI Package
 .. |download| image:: https://img.shields.io/pypi/dm/sphinxnotes-recentupdate
-   :target: https://pypi.python.org/pypi/sphinxnotes-recentupdate
+   :target: https://pypistats.org/packages/sphinxnotes-recentupdate
    :alt: PyPI Package Downloads
 
 |docs| |license| |pypi| |download|

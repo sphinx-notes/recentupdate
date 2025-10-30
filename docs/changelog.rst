@@ -22,6 +22,11 @@ Change Log
 Version 1.x
 ===========
 
+.. version:: 1.1
+   :date: 2025-10-30
+
+   - fix: Deal with case when sphinx srcdir != git workdir
+
 .. version:: 1.0
    :date: 2025-10-17
 

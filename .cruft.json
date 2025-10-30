@@ -9,7 +9,7 @@
       "full_name": "sphinxnotes-recentupdate",
       "author": "Shengyu Zhang",
       "description": "Get the document update information from git and display it in Sphinx documentation",
-      "version": "1.0",
+      "version": "1.1",
       "github_owner": "sphinx-notes",
       "github_repo": "recentupdate",
       "pypi_name": "sphinxnotes-recentupdate",

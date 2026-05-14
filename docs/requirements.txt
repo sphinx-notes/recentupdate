@@ -12,4 +12,5 @@ sphinxnotes-project
 sphinxnotes-comboroles
 
 # CUSTOM DOCS DEPENDENCIES START
+sphinxnotes-render
 # CUSTOM DOCS DEPENDENCIES END

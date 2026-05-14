@@ -2,64 +2,63 @@
 Usage
 =====
 
-The extension provides a ``recentupdate`` directive:
+The extension provides an extra context ``recentupdates`` usable via
+:external+render:term:`load_extra` function in ``sphinxnotes-render`` template:
 
-.. code:: rst
+.. example::
 
-   .. recentupdate:: [count]
+   .. data.render::
 
-      [jinja template]
+      {% for r in load_extra('recentupdates', 3) %}
+      ``📅 {{ r.date }}`` | ``👤{{ r.author }}``
 
-count
-   The optional argument of directive is the count of recent "revisions" you want to show. Revision is a git commit which contains document changes.
+        {{ r.message[0] }}
 
-   If no count given, value of :confval:`recentupdate_count` is used.
+      {% if r.changed_docs %}
+      - Modified {{ r.changed_docs | roles("doc") | join(", ") }}
+      {% endif %}
+      {% if r.added_docs %}
+      - Added {{ r.added_docs | roles("doc") | join(", ") }}
+      {% endif %}
+      {% if r.removed_docs %}
+      - Deleted {{ r.removed_docs | join(", ") }}
+      {% endif %}
 
-template
-   The optional content of directive is a jinja template for generating reStructuredText, in the template you can access Variables_ named `{{ revisions }}`_.
+      {% endfor %}
 
-   Beside, You can use `Builtin Filters`_ and Filters_ provided by extensions.
+The ``load_extra('recentupdates', count=3)`` returns a list of
+:py:class:`~sphinxnotes.recentupdate.Revision` objects from recent Git
+commits that touched document files, see below.
 
-   If no template given, value of :confval:`recentupdate_template` is used.
+The :external+render:term:`roles` filter is provided by ``sphinxnotes-render``
+too.
 
-.. _Builtin Filters: https://jinja.palletsprojects.com/en/3.0.x/templates/#builtin-filters
+.. seealso::
 
-Variables
-=========
+   :external+render:doc:`sphinxnotes-render: Templating <tmpl>`
+     How to write ``data.render`` templates.
+   :external+render:doc:`sphinxnotes-render: Templating <ext>`
+     How extra context and filters work.
 
-All available variables_:
+The "recentupdates" extra context
+=================================
 
-.. _variables: https://jinja.palletsprojects.com/en/3.0.x/templates/#variables
+``load_extra('recentupdates', count=3)`` returns a list of
+:py:class:`~sphinxnotes.recentupdate.Revision` objects from recent Git
+commits that touched document files.
 
-{{ revisions }}
----------------
+- ``count`` (*int*) — Number of recent revisions to return (default ``10``).
 
-``{{ revisions }}`` is an an array of revisions. The length of array is determined by the argument of ``recentupdate`` directive.
+.. py:class:: sphinxnotes.recentupdate.Revision
 
-Here is the schema of array element:
+   .. autoattribute:: message
 
-.. autoclass:: recentupdate.Revision
-   :members:
+   .. autoattribute:: author
 
-Filters
-=======
+   .. autoattribute:: date
 
-.. _strftime:
+   .. autoattribute:: added_docs
 
-strftime
---------
+   .. autoattribute:: changed_docs
 
-Convert a :py:class:`datetime.datetime` to string in given format.
-
-If no format given, use value of :confval:`recentupdate_date_format`.
-
-It is used in :confval:`default template <recentupdate_template>`.
-
-roles
------
-
-Convert a list of string to list of reStructuredText roles.
-
-``{{ ['foo', 'bar'] | roles("doc") }}`` produces ``[':doc:`foo`', ':doc:`bar`']``.
-
-It is used in :confval:`default template <recentupdate_template>`.
+   .. autoattribute:: removed_docs

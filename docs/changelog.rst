@@ -25,7 +25,7 @@ Version 2.x
    :break:
 
    - Integrated with :external+render:doc:`sphinxnotes-render <index>`
-   - Drop the ``.. recentupdate::`` directive, use ``load_extra('recentupdates')``
+   - Drop the ``.. recentupdate::`` directive, use ``load_extra('recentupdate')``
      in :rst:dir:`data.render`'s template
    - Drop the ``recentupdate_date_format`` confval
 

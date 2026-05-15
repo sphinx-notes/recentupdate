@@ -30,7 +30,7 @@ Introduction
 Get the Sphinx document update information from Git repository.
 
 This extension integrates with :external+render:doc:`sphinxnotes-render <index>`
-by providing an extra context ``recentupdates``. The recent document update
+by providing an extra context ``recentupdate``. The recent document update
 information is read from a Git_ repository. You can customize the presentation
 via ``data.render`` template.
 
@@ -72,7 +72,7 @@ Then, add the extension name to ``extensions`` configuration item in your
 .. ADDITIONAL CONTENT START
 
 Now you can use the :rst:dir:`data.render` directive (provided by
-``sphinxnotes.render.ext``) with ``recentupdates`` extra context to render
+``sphinxnotes.render.ext``) with ``recentupdate`` extra context to render
 a revision list:
 
 .. example::
@@ -81,7 +81,7 @@ a revision list:
 
       The most recent 3 commits:
 
-      {% for r in load_extra('recentupdates', 3) %}
+      {% for r in load_extra('recentupdate', 3) %}
       ``{{ r.date }}``
          {{ r.message[0] }}
       {% endfor %}

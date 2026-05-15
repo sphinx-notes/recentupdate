@@ -63,8 +63,8 @@ class Revision:
     removed_docs: list[str]
 
 
-@extra_context('recentupdates')
-class RecentUpdatesExtraContext(ExtraContext):
+@extra_context('recentupdate')
+class RecentUpdateExtraContext(ExtraContext):
     """Extra context providing recent document revisions from Git."""
 
     repo: ClassVar[Repo]
@@ -172,7 +172,7 @@ class RecentUpdatesExtraContext(ExtraContext):
 def setup(app: Sphinx):
     meta.pre_setup(app)
 
-    RecentUpdatesExtraContext.repo = Repo(app.srcdir, search_parent_directories=True)
+    RecentUpdateExtraContext.repo = Repo(app.srcdir, search_parent_directories=True)
 
     app.setup_extension('sphinxnotes.render')
 

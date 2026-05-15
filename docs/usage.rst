@@ -2,14 +2,14 @@
 Usage
 =====
 
-The extension provides an extra context ``recentupdates`` usable via
+The extension provides an extra context ``recentupdate`` usable via
 :external+render:term:`load_extra` function in ``sphinxnotes-render`` template:
 
 .. example::
 
    .. data.render::
 
-      {% for r in load_extra('recentupdates', 3) %}
+      {% for r in load_extra('recentupdate', 3) %}
       ``📅 {{ r.date }}`` | ``👤{{ r.author }}``
 
         {{ r.message[0] }}
@@ -26,7 +26,7 @@ The extension provides an extra context ``recentupdates`` usable via
 
       {% endfor %}
 
-The ``load_extra('recentupdates', count=3)`` returns a list of
+The ``load_extra('recentupdate', count=3)`` returns a list of
 :py:class:`~sphinxnotes.recentupdate.Revision` objects from recent Git
 commits that touched document files, see below.
 
@@ -40,10 +40,10 @@ too.
    :external+render:doc:`sphinxnotes-render: Templating <ext>`
      How extra context and filters work.
 
-The "recentupdates" extra context
+The "recentupdate" extra context
 =================================
 
-``load_extra('recentupdates', count=3)`` returns a list of
+``load_extra('recentupdate', count=3)`` returns a list of
 :py:class:`~sphinxnotes.recentupdate.Revision` objects from recent Git
 commits that touched document files.
 

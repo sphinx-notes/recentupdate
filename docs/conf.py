@@ -126,3 +126,7 @@ sys.path.insert(0, os.path.abspath('../src/'))
 extensions.append('sphinxnotes.recentupdate')
 
 # CUSTOM CONFIGURATION
+
+intersphinx_mapping['render'] = ('https://sphinx.silverrainz.me/render', None)
+
+extensions.append('sphinxnotes.render.ext')

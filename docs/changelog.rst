@@ -18,6 +18,17 @@ Change Log
 
    Change log here.
 
+Version 2.x
+===========
+
+.. version:: 2.0
+   :break:
+
+   - Integrated with :external+render:doc:`sphinxnotes-render <index>`
+   - Drop the ``.. recentupdate::`` directive, use ``load_extra('recentupdate')``
+     in :rst:dir:`data.render`'s template
+   - Drop the ``recentupdate_date_format`` confval
+
 Version 1.x
 ===========
 

@@ -27,12 +27,14 @@ Introduction
 
 .. INTRODUCTION START
 
-Get the document update information from git and display it in Sphinx documentation.
+Get the Sphinx document update information from Git repository.
 
-This extensions provides a :doc:`recentupdate <usage>` directive, which can show recent document update of current Sphinx documentation. The update information is read from Git_ repository (So you must use Git to manage your documentation). You can customize the update information through generating reStructuredText from Jinja_ template.
+This extension integrates with :external+render:doc:`sphinxnotes-render <index>`
+by providing an extra context ``recentupdate``. The recent document update
+information is read from a Git_ repository. You can customize the presentation
+via ``data.render`` template.
 
 .. _Git: https://git-scm.com/
-.. _Jinja: https://jinja.palletsprojects.com/en/3.0.x/templates/
 
 .. INTRODUCTION END
 
@@ -58,22 +60,33 @@ Then, add the extension name to ``extensions`` configuration item in your
 .. code-block:: python
 
    extensions = [
-             # …
-             'sphinxnotes.recentupdate',
-             # …
-             ]
+              # …
+              'sphinxnotes.render.ext',
+              'sphinxnotes.recentupdate',
+              # …
+              ]
 
 .. _Getting Started with Sphinx: https://www.sphinx-doc.org/en/master/usage/quickstart.html
 .. _conf.py: https://www.sphinx-doc.org/en/master/usage/configuration.html
 
 .. ADDITIONAL CONTENT START
 
-Add ``recentupdate`` directive to your document, build your document, the directive will be rendered to:
+Now you can use the :rst:dir:`data.render` directive (provided by
+``sphinxnotes.render.ext``) with ``recentupdate`` extra context to render
+a revision list:
 
 .. example::
-   :style: grid
 
-   .. recentupdate::
+   .. data.render::
+
+      The most recent 3 commits:
+
+      {% for r in load_extra('recentupdate', 3) %}
+      ``{{ r.date }}``
+         {{ r.message[0] }}
+      {% endfor %}
+
+Please refer to :doc:`usage` for more details.
 
 .. ADDITIONAL CONTENT END
 

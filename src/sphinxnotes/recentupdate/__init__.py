@@ -100,12 +100,6 @@ class RecentUpdateExtraContext(ExtraContext):
             logger.debug(f'Skip {file_path}: not {source_suffix} files')
             return None
 
-        for p in env.config.recentupdate_exclude_path:
-            exclude_path = Path(env.srcdir, p)
-            if absfn.is_relative_to(exclude_path):
-                logger.debug(f'Skip {file_path}: excluded by path {exclude_path}')
-                return None
-
         logger.debug(f'Get docname: {docname}')
         return docname
 
@@ -194,7 +188,6 @@ def setup(app: Sphinx):
 
     app.setup_extension('sphinxnotes.render')
 
-    app.add_config_value('recentupdate_exclude_path', [], 'env', types=list[str])
     app.add_config_value(
         'recentupdate_exclude_commit', ['skip-recentupdate'], 'env', types=list[str]
     )

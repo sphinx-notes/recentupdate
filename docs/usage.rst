@@ -33,6 +33,26 @@ commits that touched document files, see below.
 The :external+render:term:`roles` filter is provided by ``sphinxnotes-render``
 too.
 
+.. example::
+
+   .. data.render::
+
+      Recent changes to this document:
+
+      {% for r in load_extra('recentupdate', count=5, current_doc=True) %}
+      ``{{ r.date }}`` — {{ r.message[0] }}
+      {% endfor %}
+
+.. example::
+
+   .. data.render::
+
+      Recent changes in the ``docs/`` directory:
+
+      {% for r in load_extra('recentupdate', count=10, path='docs') %}
+      ``{{ r.date }}`` — {{ r.message[0] }}
+      {% endfor %}
+
 .. seealso::
 
    :external+render:doc:`sphinxnotes-render: Templating <tmpl>`
@@ -48,6 +68,10 @@ The "recentupdate" extra context
 commits that touched document files.
 
 - ``count`` (*int*) — Number of recent revisions to return (default ``10``).
+- ``path`` (*str*) — A :manpage:`pathspec(7)` to filter file changes
+  (default ``'.'``, i.e., entire repository).
+- ``current_doc`` (*bool*) — If ``True``, only return revisions that
+  modified the current document (default ``False``).
 
 .. py:class:: sphinxnotes.recentupdate.Revision
 

@@ -9,8 +9,8 @@ Get recent document revision info from git, exposed as render extra context.
 """
 
 from __future__ import annotations
-from typing import TYPE_CHECKING, ClassVar
-from datetime import datetime
+from typing import TYPE_CHECKING, ClassVar, override
+from datetime import datetime, timezone
 from dataclasses import dataclass
 from os import path
 from pathlib import Path
@@ -69,9 +69,16 @@ class RecentUpdateExtraContext(ExtraContext):
 
     repo: ClassVar[Repo]
 
-    def generate(self, req: ExtraContextRequest, *args, **kwargs) -> Any:
-        count = args[0] if args else kwargs.get('count', 10)
-        return self._revisions(req.env, count)
+    @override
+    def generate(
+        self,
+        req: ExtraContextRequest,
+        count: int = 10,
+        path: str = '.',
+        current_doc: bool = False,
+    ) -> Any:
+        docname = req.env.docname if current_doc else None
+        return self._revisions(req.env, count, path, docname)
 
     def _get_docname(self, env: BuildEnvironment, file_path: str) -> str | None:
         """Convert a repo-relative file path to a Sphinx docname."""
@@ -102,71 +109,82 @@ class RecentUpdateExtraContext(ExtraContext):
         logger.debug(f'Get docname: {docname}')
         return docname
 
-    def _revisions(self, env: BuildEnvironment, count: int) -> list[Revision]:
-        revisions: list[Revision] = []
+    def _revisions(
+        self,
+        env: BuildEnvironment,
+        count: int,
+        path: str = '.',
+        current_doc: str | None = None,
+    ) -> list[Revision]:
+        revs: list[Revision] = []
 
-        cur = self.repo.head.commit
-        if cur is None:
-            return revisions
-
-        n = 0
-        while n < count:
-            prev = cur.parents[0] if len(cur.parents) != 0 else None
-            if prev is None:
-                break
-
+        for cur in self.repo.iter_commits(paths=path, max_count=count + 1):
             matches = [x in cur.message for x in env.config.recentupdate_exclude_commit]
             if any(matches):
                 logger.debug(
                     f'Skip commit {cur.hexsha}: excluded by recentupdate_exclude_commit'
                 )
-                cur = prev
                 continue
 
-            m, a, d = [], [], []
-            diff_idx = prev.tree.diff(cur)
-            for diff in diff_idx:
-                if diff.a_path is None:
-                    continue
-                docname = self._get_docname(env, diff.a_path)
-                if docname is None:
-                    continue
+            prev = cur.parents[0] if len(cur.parents) != 0 else None
 
-                if diff.change_type == 'M':
-                    m.append(docname)
-                elif diff.change_type == 'A':
-                    a.append(docname)
-                elif diff.change_type == 'D':
-                    d.append(docname)
-                else:
-                    logger.info(
-                        f'Skip {diff.a_path}: '
-                        f'unsupported change type {diff.change_type}'
-                    )
+            m, a, d = [], [], []
+            if prev is None:
+                # Special case: root commit, all files are added
+                for blob in cur.tree.traverse():
+                    if blob.type != 'blob':
+                        continue
+                    docname = self._get_docname(env, blob.path)
+                    if docname is not None:
+                        a.append(docname)
+            else:
+                diff_idx = prev.tree.diff(cur)
+                for diff in diff_idx:
+                    if diff.a_path is None:
+                        continue
+                    docname = self._get_docname(env, diff.a_path)
+                    if docname is None:
+                        continue
+
+                    if diff.change_type == 'M':
+                        m.append(docname)
+                    elif diff.change_type == 'A':
+                        a.append(docname)
+                    elif diff.change_type == 'D':
+                        d.append(docname)
+                    else:
+                        logger.info(
+                            f'Skip {diff.a_path}: '
+                            f'unsupported change type {diff.change_type}'
+                        )
 
             if len(m) + len(a) + len(d) == 0:
                 logger.debug(f'Skip commit {cur.hexsha}: no document changes')
-                cur = prev
                 continue
 
-            revisions.append(
+            if current_doc is not None and current_doc not in (m + a + d):
+                logger.debug(f'Skip commit {cur.hexsha}: no changes to {current_doc}')
+                continue
+
+            revs.append(
                 Revision(
-                    message=cur.message.splitlines(),
+                    message=str(cur.message).splitlines(),
                     author=str(cur.author or ''),
-                    date=datetime.utcfromtimestamp(cur.authored_date),
+                    date=datetime.fromtimestamp(cur.authored_date, tz=timezone.utc),
                     changed_docs=m,
                     added_docs=a,
                     removed_docs=d,
                 )
             )
-            cur = prev
-            n += 1
+
+            if len(revs) >= count:
+                break
 
         logger.info(
-            f'[recentupdate] Intend to get recent {count} commits, eventually get {n}'
+            f'[recentupdate] Intend to get recent {count} commits, eventually get {len(revs)}'
         )
 
-        return revisions
+        return revs
 
 
 def setup(app: Sphinx):

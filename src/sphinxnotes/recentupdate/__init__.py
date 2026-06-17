@@ -72,7 +72,7 @@ def get_git_revisions(
 ) -> list[Revision]:
     revs: list[Revision] = []
 
-    for cur in repo.iter_commits(paths=path, max_count=count + 1):
+    for cur in repo.iter_commits(paths=path):
         matches = [x in cur.message for x in env.config.recentupdate_exclude_commit]
         if any(matches):
             logger.debug(

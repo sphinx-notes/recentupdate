@@ -9,8 +9,8 @@ Get recent document revision info from git, exposed as render extra context.
 """
 
 from __future__ import annotations
-from typing import TYPE_CHECKING, ClassVar
-from datetime import datetime
+from typing import TYPE_CHECKING, ClassVar, override
+from datetime import datetime, timezone
 from dataclasses import dataclass
 from os import path
 from pathlib import Path
@@ -63,72 +63,41 @@ class Revision:
     removed_docs: list[str]
 
 
-@extra_context('recentupdate')
-class RecentUpdateExtraContext(ExtraContext):
-    """Extra context providing recent document revisions from Git."""
+def get_git_revisions(
+    repo: Repo,
+    env: BuildEnvironment,
+    count: int,
+    path: str,
+    current_doc: str | None = None,
+) -> list[Revision]:
+    revs: list[Revision] = []
 
-    repo: ClassVar[Repo]
+    for cur in repo.iter_commits(paths=path, max_count=count + 1):
+        matches = [x in cur.message for x in env.config.recentupdate_exclude_commit]
+        if any(matches):
+            logger.debug(
+                f'Skip commit {cur.hexsha}: excluded by recentupdate_exclude_commit'
+            )
+            continue
 
-    def generate(self, req: ExtraContextRequest, *args, **kwargs) -> Any:
-        count = args[0] if args else kwargs.get('count', 10)
-        return self._revisions(req.env, count)
+        prev = cur.parents[0] if len(cur.parents) != 0 else None
 
-    def _get_docname(self, env: BuildEnvironment, file_path: str) -> str | None:
-        """Convert a repo-relative file path to a Sphinx docname."""
-        relsrcdir_to_repo = path.relpath(env.srcdir, self.repo.working_dir)
-        relfn_to_srcdir = path.relpath(file_path, relsrcdir_to_repo)
-        absfn = Path(self.repo.working_dir, file_path)
-        if not absfn.is_relative_to(env.srcdir):
-            logger.debug(f'Skip {file_path}: out of srcdir')
-            return None
-
-        excluded = Matcher(env.config.exclude_patterns)
-        if excluded(relfn_to_srcdir):
-            logger.debug(f'Skip {file_path}: excluded by exclude_patterns')
-            return None
-
-        docname, ext = path.splitext(relfn_to_srcdir)
-        source_suffix = list(env.config.source_suffix.keys())
-        if not ext or ext not in source_suffix:
-            logger.debug(f'Skip {file_path}: not {source_suffix} files')
-            return None
-
-        for p in env.config.recentupdate_exclude_path:
-            exclude_path = Path(env.srcdir, p)
-            if absfn.is_relative_to(exclude_path):
-                logger.debug(f'Skip {file_path}: excluded by path {exclude_path}')
-                return None
-
-        logger.debug(f'Get docname: {docname}')
-        return docname
-
-    def _revisions(self, env: BuildEnvironment, count: int) -> list[Revision]:
-        revisions: list[Revision] = []
-
-        cur = self.repo.head.commit
-        if cur is None:
-            return revisions
-
-        n = 0
-        while n < count:
-            prev = cur.parents[0] if len(cur.parents) != 0 else None
-            if prev is None:
-                break
-
-            matches = [x in cur.message for x in env.config.recentupdate_exclude_commit]
-            if any(matches):
-                logger.debug(
-                    f'Skip commit {cur.hexsha}: excluded by recentupdate_exclude_commit'
-                )
-                cur = prev
-                continue
-
-            m, a, d = [], [], []
+        m, a, d = [], [], []
+        if prev is None:
+            # Special case: root commit, all files are added
+            for blob in cur.tree.traverse():
+                if blob.type != 'blob':
+                    continue
+                docname = path2docname(repo, env, blob.path)
+                if docname is None:
+                    continue
+                a.append(docname)
+        else:
             diff_idx = prev.tree.diff(cur)
             for diff in diff_idx:
                 if diff.a_path is None:
                     continue
-                docname = self._get_docname(env, diff.a_path)
+                docname = path2docname(repo, env, diff.a_path)
                 if docname is None:
                     continue
 
@@ -144,29 +113,72 @@ class RecentUpdateExtraContext(ExtraContext):
                         f'unsupported change type {diff.change_type}'
                     )
 
-            if len(m) + len(a) + len(d) == 0:
-                logger.debug(f'Skip commit {cur.hexsha}: no document changes')
-                cur = prev
-                continue
+        if len(m) + len(a) + len(d) == 0:
+            logger.debug(f'Skip commit {cur.hexsha}: no document changes')
+            continue
+        if current_doc is not None and current_doc not in (m + a + d):
+            logger.debug(f'Skip commit {cur.hexsha}: no changes to {current_doc}')
+            continue
 
-            revisions.append(
-                Revision(
-                    message=cur.message.splitlines(),
-                    author=str(cur.author or ''),
-                    date=datetime.utcfromtimestamp(cur.authored_date),
-                    changed_docs=m,
-                    added_docs=a,
-                    removed_docs=d,
-                )
+        revs.append(
+            Revision(
+                message=str(cur.message).splitlines(),
+                author=str(cur.author or ''),
+                date=datetime.fromtimestamp(cur.authored_date, tz=timezone.utc),
+                changed_docs=m,
+                added_docs=a,
+                removed_docs=d,
             )
-            cur = prev
-            n += 1
-
-        logger.info(
-            f'[recentupdate] Intend to get recent {count} commits, eventually get {n}'
         )
+        if len(revs) >= count:
+            break
 
-        return revisions
+    logger.info(
+        f'[recentupdate] Intend to get recent {count} commits, eventually get {len(revs)}'
+    )
+    return revs
+
+
+def path2docname(repo: Repo, env: BuildEnvironment, file: str) -> str | None:
+    """Convert a repo-relative file path to a Sphinx docname."""
+    relsrcdir_to_repo = path.relpath(env.srcdir, repo.working_dir)
+    relfn_to_srcdir = path.relpath(file, relsrcdir_to_repo)
+    absfn = Path(repo.working_dir, file)
+    if not absfn.is_relative_to(env.srcdir):
+        logger.debug(f'Skip {file}: out of srcdir')
+        return None
+
+    excluded = Matcher(env.config.exclude_patterns)
+    if excluded(relfn_to_srcdir):
+        logger.debug(f'Skip {file}: excluded by exclude_patterns')
+        return None
+
+    docname, ext = path.splitext(relfn_to_srcdir)
+    source_suffix = list(env.config.source_suffix.keys())
+    if not ext or ext not in source_suffix:
+        logger.debug(f'Skip {file}: not {source_suffix} files')
+        return None
+
+    logger.debug(f'Get docname: {docname}')
+    return docname
+
+
+@extra_context('recentupdate')
+class RecentUpdateExtraContext(ExtraContext):
+    """Extra context providing recent document revisions from Git."""
+
+    repo: ClassVar[Repo]
+
+    @override
+    def generate(
+        self,
+        req: ExtraContextRequest,
+        count: int = 10,
+        path: str = '.',
+        current_doc: bool = False,
+    ) -> Any:
+        docname = req.env.docname if current_doc else None
+        return get_git_revisions(self.repo, req.env, count, path, docname)
 
 
 def setup(app: Sphinx):
@@ -176,7 +188,6 @@ def setup(app: Sphinx):
 
     app.setup_extension('sphinxnotes.render')
 
-    app.add_config_value('recentupdate_exclude_path', [], 'env', types=list[str])
     app.add_config_value(
         'recentupdate_exclude_commit', ['skip-recentupdate'], 'env', types=list[str]
     )

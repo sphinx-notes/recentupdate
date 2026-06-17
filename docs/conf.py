@@ -130,3 +130,9 @@ extensions.append('sphinxnotes.recentupdate')
 intersphinx_mapping['render'] = ('https://sphinx.silverrainz.me/render', None)
 
 extensions.append('sphinxnotes.render.ext')
+
+manpages_url = 'https://manpages.debian.org/{path}'
+
+autodoc_typehints = 'signature'
+
+project_example_style = 'stack'

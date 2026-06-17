@@ -14,7 +14,7 @@ When calling ``load_extra('recentupdate', **kwargs)`` in the template, the
 following parameters are available:
 
 ``count``
-  Number of recent revisions to return (default ``10``).
+  Number of recent revisions to return (default from :confval:`recentupdate_count`).
 
 ``path``
   A git pathspec (:manpage:`gitglossary(7)`) to filter file changes
@@ -100,5 +100,5 @@ For more details about ``sphinxnotes-render``:
 
    :external+render:doc:`sphinxnotes-render: Templating <tmpl>`
      How to write ``data.render`` templates.
-   :external+render:doc:`sphinxnotes-render: Templating <ext>`
+   :external+render:doc:`sphinxnotes-render: Extending <ext>`
      How extra context and filters work.

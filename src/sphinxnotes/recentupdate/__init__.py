@@ -173,10 +173,12 @@ class RecentUpdateExtraContext(ExtraContext):
     def generate(
         self,
         req: ExtraContextRequest,
-        count: int = 10,
+        count: int = 0,
         path: str = '.',
         current_doc: bool = False,
     ) -> Any:
+        if count <= 0:
+            count = req.env.config.recentupdate_count
         docname = req.env.docname if current_doc else None
         return get_git_revisions(self.repo, req.env, count, path, docname)
 
@@ -191,5 +193,7 @@ def setup(app: Sphinx):
     app.add_config_value(
         'recentupdate_exclude_commit', ['skip-recentupdate'], 'env', types=list[str]
     )
+
+    app.add_config_value('recentupdate_count', 10, 'env', types=int)
 
     return meta.post_setup(app)

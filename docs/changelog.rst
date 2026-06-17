@@ -24,10 +24,19 @@ Version 2.x
 .. version:: 2.0
    :break:
 
-   - Integrated with :external+render:doc:`sphinxnotes-render <index>`
-   - Drop the ``.. recentupdate::`` directive, use ``load_extra('recentupdate')``
-     in :rst:dir:`data.render`'s template
-   - Drop the ``recentupdate_date_format`` confval
+   - The template feature is now provided by
+     :external+render:doc:`sphinxnotes-render <index>`. It offers richer features;
+     Please see :external+render:doc:`tmpl`
+   - The extension now provides a ``recentupdate`` extra context for replacing 
+     the ``.. recentupdate::`` directive. See :doc:`usage` for more details
+
+   BREAKING CHANGES:
+
+   - Drop the ``.. recentupdate::`` directive
+   - Drop the ``strftime`` and ``roles`` filters
+   - Drop the ``recentupdate_date_format``, ``recentupdate_template``, and
+     ``recentupdate_exclude_path`` confvals
+   - The members of :py:class:`~sphinxnotes.recentupdate.Revision` are renamed
 
 Version 1.x
 ===========

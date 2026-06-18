@@ -160,24 +160,28 @@ def get_git_revisions(
                     continue
                 a.append(docname)
         else:
-            diff_idx = prev.tree.diff(cur)
-            for diff in diff_idx:
-                if diff.a_path is None:
+            # Use git diff --name-status with pathspecs for native pathspec matching
+            name_status = repo.git.diff(
+                prev.hexsha, cur.hexsha, '--name-status', '--', *paths
+            )
+            for line in name_status.splitlines():
+                if not line.strip():
                     continue
-                docname = path2docname(repo, env, diff.a_path)
+                status, file_path = line.split('\t', 1)
+                docname = path2docname(repo, env, file_path)
                 if docname is None:
                     continue
 
-                if diff.change_type == 'M':
+                if status == 'M':
                     m.append(docname)
-                elif diff.change_type == 'A':
+                elif status == 'A':
                     a.append(docname)
-                elif diff.change_type == 'D':
+                elif status == 'D':
                     d.append(docname)
                 else:
                     logger.info(
-                        f'Skip {diff.a_path}: '
-                        f'unsupported change type {diff.change_type}'
+                        f'Skip {file_path}: '
+                        f'unsupported change type {status}'
                     )
 
         if len(m) + len(a) + len(d) == 0:

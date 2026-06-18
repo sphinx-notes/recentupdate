@@ -14,13 +14,11 @@ from datetime import datetime, timezone
 from dataclasses import dataclass
 from collections import OrderedDict
 from os import path
-from pathlib import Path
 from itertools import islice
 
 from git import Repo
 
 from sphinx.util import logging
-from sphinx.util.matching import Matcher
 from sphinx.config import ENUM
 
 from sphinxnotes.render import (
@@ -144,7 +142,7 @@ def get_git_revisions(
             for blob in cur.tree.traverse():
                 if blob.type != 'blob':
                     continue
-                docname = path2docname(repo, env, blob.path)
+                docname = path2doc(repo, env, blob.path)
                 if docname is None:
                     continue
                 a.append(docname)
@@ -168,7 +166,7 @@ def get_git_revisions(
                 if not line.strip():
                     continue
                 status, file_path = line.split('\t', 1)
-                docname = path2docname(repo, env, file_path)
+                docname = path2doc(repo, env, file_path)
                 if docname is None:
                     continue
 
@@ -191,28 +189,9 @@ def get_git_revisions(
         )
 
 
-def path2docname(repo: Repo, env: BuildEnvironment, file: str) -> str | None:
-    """Convert a repo-relative file path to a Sphinx docname."""
-    relsrcdir_to_repo = path.relpath(env.srcdir, repo.working_dir)
-    relfn_to_srcdir = path.relpath(file, relsrcdir_to_repo)
-    absfn = Path(repo.working_dir, file)
-    if not absfn.is_relative_to(env.srcdir):
-        logger.debug(f'Skip {file}: out of srcdir')
-        return None
-
-    excluded = Matcher(env.config.exclude_patterns)
-    if excluded(relfn_to_srcdir):
-        logger.debug(f'Skip {file}: excluded by exclude_patterns')
-        return None
-
-    docname, ext = path.splitext(relfn_to_srcdir)
-    source_suffix = list(env.config.source_suffix.keys())
-    if not ext or ext not in source_suffix:
-        logger.debug(f'Skip {file}: not {source_suffix} files')
-        return None
-
-    logger.debug(f'Get docname: {docname}')
-    return docname
+def path2doc(repo: Repo, env: BuildEnvironment, blob_path: str) -> str | None:
+    """Convert a git repo-relative blob path to a Sphinx document name. """
+    return env.path2doc(path.join(repo.working_dir, blob_path))
 
 
 @extra_context('recentupdate')

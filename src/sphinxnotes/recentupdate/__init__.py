@@ -234,8 +234,9 @@ class RecentUpdateExtraContext(ExtraContext):
         group_by = group_by or req.env.config.recentupdate_group_by
 
         if current_doc:
-            docname = req.env.docname
-            paths = [docname + '.*']
+            docpath = req.env.doc2path(req.env.docname)
+            repo_path = path.relpath(docpath, self.repo.working_dir)
+            paths = [repo_path]
 
         git_revs = get_git_revisions(self.repo, req.env, paths)
 

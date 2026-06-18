@@ -12,3 +12,8 @@ The extension provides the following configuration:
 
    Number of recent revisions to return by default when calling
    ``load_extra('recentupdate')`` without an explicit ``count`` parameter.
+
+.. autoconfval:: recentupdate_group_by
+
+   Group revisions by time period. When set, revisions are grouped by
+   UTC time period and author.

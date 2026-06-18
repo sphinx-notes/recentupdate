@@ -26,6 +26,18 @@ following parameters are available:
   (default ``False``).
   See also :example:`Recent Updates to Current Document`.
 
+.. role:: py(code)
+  :language: Python
+
+``group_by``
+  Group revisions by time period. Revisions are grouped by UTC time
+  period and author.
+
+  Default from :confval:`recentupdate_group_by`, Available values:
+  :data.render:`{{ load_extra('env').config.values['recentupdate_group_by'].valid_types | autoconfval_types | join(', ') }}`.
+
+  See also :example:`Grouped Recent Updates`.
+
 Each item returned is a :py:class:`~sphinxnotes.recentupdate.Revision` object:
 
 .. autoclass:: sphinxnotes.recentupdate.Revision
@@ -89,6 +101,19 @@ Examples
 
       {% for r in load_extra('recentupdate', count=5, current_doc=True) %}
       ``{{ r.date }}`` — {{ r.message[0] }}
+      {% endfor %}
+
+.. example:: Grouped Recent Updates
+
+   .. data.render::
+
+      Recent updates grouped by day:
+
+      {% for r in load_extra('recentupdate', count=10, group_by='month') %}
+      ``📅 {{ r.date.strftime('%Y-%m') }}``
+         {% for msg in r.message[:3] %}
+         {{ msg }}
+         {% endfor %}
       {% endfor %}
 
 ``sphinxnotes-render``

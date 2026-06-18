@@ -9,16 +9,19 @@ Get recent document revision info from git, exposed as render extra context.
 """
 
 from __future__ import annotations
-from typing import TYPE_CHECKING, ClassVar, override
+from typing import TYPE_CHECKING, ClassVar, Iterator, override
 from datetime import datetime, timezone
 from dataclasses import dataclass
+from collections import OrderedDict
 from os import path
 from pathlib import Path
+from itertools import islice
 
 from git import Repo
 
 from sphinx.util import logging
 from sphinx.util.matching import Matcher
+from sphinx.config import ENUM
 
 from sphinxnotes.render import (
     extra_context,
@@ -63,15 +66,79 @@ class Revision:
     removed_docs: list[str]
 
 
+def get_time_period_key(dt: datetime, group_by: str) -> datetime:
+    """Return the start of the time period for grouping."""
+    if group_by == 'day':
+        return dt.replace(hour=0, minute=0, second=0, microsecond=0)
+    elif group_by == 'month':
+        return dt.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    elif group_by == 'year':
+        return dt.replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
+    return dt
+
+
+def compact_revision(revs: list[Revision]) -> Revision:
+    if len(revs) == 1:
+        return revs[0]
+
+    messages = []
+    for rev in reversed(revs):
+        messages.extend(rev.message)
+
+    added, changed, removed = set(), set(), set()
+    for rev in reversed(revs):
+        added.update(rev.added_docs)
+        changed.update(rev.changed_docs)
+        removed.update(rev.removed_docs)
+
+    # Compute the net effect of all commits in this group:
+    # If a file was added then deleted, the net effect is removal.
+    # If a file was added then modified, the net effect is addition.
+    # If a file was modified then deleted, the net effect is removal.
+    # FIXME: If a files is removed and then re-added, ...
+    added -= removed
+    changed -= removed
+    changed -= added
+
+    return Revision(
+        message=messages,
+        author=revs[0].author,
+        date=revs[0].date,
+        added_docs=sorted(added),
+        changed_docs=sorted(changed),
+        removed_docs=sorted(removed),
+    )
+
+
+def group_revisions(
+    groups: OrderedDict[tuple[str, datetime], list[Revision]],
+    rev: Revision,
+    group_by: str,
+) -> None:
+    """Add revision to groups."""
+    key = (rev.author, get_time_period_key(rev.date, group_by))
+    groups.setdefault(key, []).append(rev)
+
+
+def compact_groups(
+    groups: OrderedDict[tuple[str, datetime], list[Revision]],
+) -> list[Revision]:
+    """Compact grouped revisions into a list of Revision."""
+    merged = []
+    for (author, period_date), revs in groups.items():
+        rev = compact_revision(revs)
+        rev.author, rev.date = author, period_date
+        merged.append(rev)
+    return merged
+
+
 def get_git_revisions(
     repo: Repo,
     env: BuildEnvironment,
-    count: int,
     path: str,
     current_doc: str | None = None,
-) -> list[Revision]:
-    revs: list[Revision] = []
-
+) -> Iterator[Revision]:
+    """Yield Revision objects from git commits."""
     for cur in repo.iter_commits(paths=path):
         matches = [x in cur.message for x in env.config.recentupdate_exclude_commit]
         if any(matches):
@@ -120,23 +187,14 @@ def get_git_revisions(
             logger.debug(f'Skip commit {cur.hexsha}: no changes to {current_doc}')
             continue
 
-        revs.append(
-            Revision(
-                message=str(cur.message).splitlines(),
-                author=str(cur.author or ''),
-                date=datetime.fromtimestamp(cur.authored_date, tz=timezone.utc),
-                changed_docs=m,
-                added_docs=a,
-                removed_docs=d,
-            )
+        yield Revision(
+            message=str(cur.message).splitlines(),
+            author=str(cur.author or ''),
+            date=datetime.fromtimestamp(cur.authored_date, tz=timezone.utc),
+            changed_docs=m,
+            added_docs=a,
+            removed_docs=d,
         )
-        if len(revs) >= count:
-            break
-
-    logger.info(
-        f'[recentupdate] Intend to get recent {count} commits, eventually get {len(revs)}'
-    )
-    return revs
 
 
 def path2docname(repo: Repo, env: BuildEnvironment, file: str) -> str | None:
@@ -176,11 +234,28 @@ class RecentUpdateExtraContext(ExtraContext):
         count: int = 0,
         path: str = '.',
         current_doc: bool = False,
+        group_by: str = '',
     ) -> Any:
-        if count <= 0:
-            count = req.env.config.recentupdate_count
+        count = count or req.env.config.recentupdate_count
+        group_by = group_by or req.env.config.recentupdate_group_by
         docname = req.env.docname if current_doc else None
-        return get_git_revisions(self.repo, req.env, count, path, docname)
+
+        git_revs = get_git_revisions(self.repo, req.env, path, docname)
+
+        if group_by:
+            groups = OrderedDict()
+            for rev in git_revs:
+                group_revisions(groups, rev, group_by)
+                if len(groups) >= count:
+                    break
+            revs = compact_groups(groups)
+        else:
+            revs = list(islice(git_revs, count))
+        logger.info(
+            f'[recentupdate] Expect {count} revisions, finally get {len(revs)}, group by {group_by}'
+        )
+
+        return revs
 
 
 def setup(app: Sphinx):
@@ -193,7 +268,9 @@ def setup(app: Sphinx):
     app.add_config_value(
         'recentupdate_exclude_commit', ['skip-recentupdate'], 'env', types=list[str]
     )
-
     app.add_config_value('recentupdate_count', 10, 'env', types=int)
+    app.add_config_value(
+        'recentupdate_group_by', None, 'env', types=ENUM(None, 'day', 'month', 'year')
+    )
 
     return meta.post_setup(app)

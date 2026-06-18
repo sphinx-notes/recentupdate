@@ -135,11 +135,11 @@ def compact_groups(
 def get_git_revisions(
     repo: Repo,
     env: BuildEnvironment,
-    path: str,
+    paths: list[str],
     current_doc: str | None = None,
 ) -> Iterator[Revision]:
     """Yield Revision objects from git commits."""
-    for cur in repo.iter_commits(paths=path):
+    for cur in repo.iter_commits(paths=paths):
         matches = [x in cur.message for x in env.config.recentupdate_exclude_commit]
         if any(matches):
             logger.debug(
@@ -232,7 +232,7 @@ class RecentUpdateExtraContext(ExtraContext):
         self,
         req: ExtraContextRequest,
         count: int = 0,
-        path: str = '.',
+        paths: list[str] = ['.', ],
         current_doc: bool = False,
         group_by: str = '',
     ) -> Any:
@@ -240,7 +240,7 @@ class RecentUpdateExtraContext(ExtraContext):
         group_by = group_by or req.env.config.recentupdate_group_by
         docname = req.env.docname if current_doc else None
 
-        git_revs = get_git_revisions(self.repo, req.env, path, docname)
+        git_revs = get_git_revisions(self.repo, req.env, paths, docname)
 
         if group_by:
             groups = OrderedDict()

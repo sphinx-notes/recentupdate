@@ -16,9 +16,9 @@ following parameters are available:
 ``count``
   Number of recent revisions to return (default from :confval:`recentupdate_count`).
 
-``path``
-  A git pathspec (:manpage:`gitglossary(7)`) to filter file changes
-  (default ``'.'``).
+``paths``
+  A list of git pathspecs (:manpage:`gitglossary(7)`) to filter file changes
+  (default ``['.']``).
   See also :example:`Recent Updates of Custom Path`.
 
 ``current_doc``
@@ -89,7 +89,7 @@ Examples
 
       Recent changes of the ``docs/index.rst`` file:
 
-      {% for r in load_extra('recentupdate', count=5, path='docs/index.rst') %}
+      {% for r in load_extra('recentupdate', count=5, paths=['docs/index.rst']) %}
       ``{{ r.date }}`` — {{ r.message[0] }}
       {% endfor %}
 

@@ -126,7 +126,6 @@ def get_git_revisions(
     repo: Repo,
     env: BuildEnvironment,
     paths: list[str],
-    current_doc: str | None = None,
 ) -> Iterator[Revision]:
     """Yield Revision objects from git commits."""
     for cur in repo.iter_commits(paths=paths):
@@ -181,9 +180,6 @@ def get_git_revisions(
         if len(m) + len(a) + len(d) == 0:
             logger.debug(f'Skip commit {cur.hexsha}: no document changes')
             continue
-        if current_doc is not None and current_doc not in (m + a + d):
-            logger.debug(f'Skip commit {cur.hexsha}: no changes to {current_doc}')
-            continue
 
         yield Revision(
             message=str(cur.message).splitlines(),
@@ -236,9 +232,12 @@ class RecentUpdateExtraContext(ExtraContext):
     ) -> Any:
         count = count or req.env.config.recentupdate_count
         group_by = group_by or req.env.config.recentupdate_group_by
-        docname = req.env.docname if current_doc else None
 
-        git_revs = get_git_revisions(self.repo, req.env, paths, docname)
+        if current_doc:
+            docname = req.env.docname
+            paths = [docname + '.*']
+
+        git_revs = get_git_revisions(self.repo, req.env, paths)
 
         if group_by:
             groups = OrderedDict()

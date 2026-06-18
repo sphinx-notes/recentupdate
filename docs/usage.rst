@@ -23,8 +23,14 @@ following parameters are available:
 
 ``current_doc``
   If ``True``, only return revisions that modified the current document
-  (default ``False``).
+  (default ``False``). When enabled, ``paths`` is overridden with a pathspec
+  matching the current document.
   See also :example:`Recent Updates to Current Document`.
+
+.. note::
+
+   ``paths`` and ``current_doc`` are mutually exclusive. When ``current_doc=True``,
+   the ``paths`` parameter is ignored.
 
 .. role:: py(code)
   :language: Python

@@ -16,15 +16,21 @@ following parameters are available:
 ``count``
   Number of recent revisions to return (default from :confval:`recentupdate_count`).
 
-``path``
-  A git pathspec (:manpage:`gitglossary(7)`) to filter file changes
-  (default ``'.'``).
+``paths``
+  A list of git pathspecs (:manpage:`gitglossary(7)`) to filter file changes
+  (default ``['.']``).
   See also :example:`Recent Updates of Custom Path`.
 
 ``current_doc``
   If ``True``, only return revisions that modified the current document
-  (default ``False``).
+  (default ``False``). When enabled, ``paths`` is overridden with a pathspec
+  matching the current document.
   See also :example:`Recent Updates to Current Document`.
+
+.. note::
+
+   ``paths`` and ``current_doc`` are mutually exclusive. When ``current_doc=True``,
+   the ``paths`` parameter is ignored.
 
 .. role:: py(code)
   :language: Python
@@ -89,7 +95,7 @@ Examples
 
       Recent changes of the ``docs/index.rst`` file:
 
-      {% for r in load_extra('recentupdate', count=5, path='docs/index.rst') %}
+      {% for r in load_extra('recentupdate', count=5, paths=['docs/index.rst']) %}
       ``{{ r.date }}`` — {{ r.message[0] }}
       {% endfor %}
 

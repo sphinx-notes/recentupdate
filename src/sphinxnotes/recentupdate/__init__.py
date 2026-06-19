@@ -9,14 +9,17 @@ Get recent document revision info from git, exposed as render extra context.
 """
 
 from __future__ import annotations
-from typing import TYPE_CHECKING, ClassVar, Iterator, override
+from typing import TYPE_CHECKING, Iterator, override
 from datetime import datetime, timezone
 from dataclasses import dataclass
 from collections import OrderedDict
 from os import path
 from itertools import islice
+from textwrap import dedent
 
 from git import Repo
+
+from docutils.parsers.rst import directives
 
 from sphinx.util import logging
 from sphinx.config import ENUM
@@ -25,6 +28,9 @@ from sphinxnotes.render import (
     extra_context,
     ExtraContext,
     ExtraContextRequest,
+    BaseContextDirective,
+    Phase,
+    Template,
 )
 
 from . import meta
@@ -156,7 +162,7 @@ def get_git_revisions(
             # :T: change in the type of the file
             # :U: file is unmerged (you must complete the merge before it can be committed)
             # :X: "unknown" change type (most probably a bug, please report it)
-            status_maps = {'M': m, 'A': a, 'D': d }
+            status_maps = {'M': m, 'A': a, 'D': d}
 
             # Use git diff --name-status with pathspecs for native pathspec matching
             name_status = repo.git.diff(
@@ -190,65 +196,141 @@ def get_git_revisions(
 
 
 def path2doc(repo: Repo, env: BuildEnvironment, blob_path: str) -> str | None:
-    """Convert a git repo-relative blob path to a Sphinx document name. """
+    """Convert a git repo-relative blob path to a Sphinx document name."""
     docname = env.path2doc(path.join(repo.working_dir, blob_path))
     return docname if (docname and not path.isabs(docname)) else None
+
+
+def collect_revisions(
+    repo: Repo,
+    env: BuildEnvironment,
+    count: int | None,
+    paths: list[str],
+    group_by: str | None,
+) -> list[Revision]:
+    """Collect recent revisions from git, optionally grouped by time period."""
+    repo = CURRENT_REPO
+    count = count or env.config.recentupdate_count
+    group_by = group_by or env.config.recentupdate_group_by
+
+    git_revs = get_git_revisions(repo, env, paths)
+
+    if group_by:
+        groups = OrderedDict()
+        for rev in git_revs:
+            group_revisions(groups, rev, group_by)
+            if len(groups) >= count:
+                break
+        revs = compact_groups(groups)
+    else:
+        revs = list(islice(git_revs, count))
+    logger.info(
+        f'[recentupdate] Expect {count} revisions, finally get {len(revs)}, group by {group_by}'
+    )
+
+    return revs
+
+class RecentUpdateDirective(BaseContextDirective):
+    """Directive for displaying recent document updates."""
+
+    @staticmethod
+    def _group_by_choice(arg: str):
+        return directives.choice(arg, GROUP_BY_CHOICES)
+
+    has_content = True
+    required_arguments = 0
+    optional_arguments = 1
+    option_spec = {
+        'self': directives.flag,
+        'paths': directives.unchanged,
+        'group-by': _group_by_choice,
+    }
+
+    def current_context(self) -> dict:
+        repo = CURRENT_REPO
+
+        count = int(self.arguments[0]) if self.arguments else None
+
+        if 'self' in self.options:
+            docpath = self.env.doc2path(self.env.docname)
+            paths = [path.relpath(docpath, repo.working_dir)]
+        elif 'paths' in self.options:
+            paths = [p.strip() for p in self.options['paths'].splitlines() if p.strip()]
+        else:
+            paths = []
+
+        group_by = self.options.get('group-by')
+
+        revs = collect_revisions(repo, self.env, count, paths, group_by)
+        return {'revisions': revs}
+
+    def current_template(self) -> Template:
+        text = '\n'.join(self.content)
+        if not text.strip():
+            text = self.env.config.recentupdate_template
+        return Template(text, phase=Phase.Parsing)
 
 
 @extra_context('recentupdate')
 class RecentUpdateExtraContext(ExtraContext):
     """Extra context providing recent document revisions from Git."""
 
-    repo: ClassVar[Repo]
-
     @override
     def generate(
         self,
         req: ExtraContextRequest,
-        count: int = 0,
-        paths: list[str] = ['.', ],
-        current_doc: bool = False,
-        group_by: str = '',
+        count: int | None = None,
+        paths: list[str] = [],
+        group_by: str | None = None,
+        self_only: bool = False,
     ) -> Any:
-        count = count or req.env.config.recentupdate_count
-        group_by = group_by or req.env.config.recentupdate_group_by
+        repo = CURRENT_REPO
 
-        if current_doc:
+        if self_only:
             docpath = req.env.doc2path(req.env.docname)
-            repo_path = path.relpath(docpath, self.repo.working_dir)
-            paths = [repo_path]
+            paths = [path.relpath(docpath, repo.working_dir)]
 
-        git_revs = get_git_revisions(self.repo, req.env, paths)
+        return collect_revisions(repo, req.env, count, paths, group_by)
 
-        if group_by:
-            groups = OrderedDict()
-            for rev in git_revs:
-                group_revisions(groups, rev, group_by)
-                if len(groups) >= count:
-                    break
-            revs = compact_groups(groups)
-        else:
-            revs = list(islice(git_revs, count))
-        logger.info(
-            f'[recentupdate] Expect {count} revisions, finally get {len(revs)}, group by {group_by}'
-        )
 
-        return revs
+CURRENT_REPO: Repo
+GROUP_BY_CHOICES = ['day', 'month', 'year']
+DEFAULT_TEMPLATE = dedent("""\
+    {% for r in revisions %}
+    ``👤 {{ r.author }}`` @ ``📅 {{ r.date.strftime('%Y-%m-%d') }}``
+       ::
 
+          {{ r.message[0] }}
+
+       {% if r.changed_docs -%}
+       - Modified {{ r.changed_docs | roles("doc") | join(", ") }}
+       {% endif %}
+       {% if r.added_docs -%}
+       - Added {{ r.added_docs | roles("doc") | join(", ") }}
+       {% endif %}
+       {% if r.removed_docs -%}
+       - Deleted {{ r.removed_docs | join(", ") }}
+       {% endif %}
+    {% endfor %}
+    """)
 
 def setup(app: Sphinx):
     meta.pre_setup(app)
 
-    RecentUpdateExtraContext.repo = Repo(app.srcdir, search_parent_directories=True)
+    global CURRENT_REPO
+    CURRENT_REPO = Repo(app.srcdir, search_parent_directories=True)
 
     app.setup_extension('sphinxnotes.render')
+
+    app.add_directive('recentupdate', RecentUpdateDirective)
 
     app.add_config_value(
         'recentupdate_exclude_commit', ['skip-recentupdate'], 'env', types=list[str]
     )
-    app.add_config_value('recentupdate_count', 10, 'env', types=int)
+    app.add_config_value('recentupdate_count', 5, 'env', types=int)
+    app.add_config_value('recentupdate_template', DEFAULT_TEMPLATE, 'env', types=str)
     app.add_config_value(
-        'recentupdate_group_by', None, 'env', types=ENUM(None, 'day', 'month', 'year')
+        'recentupdate_group_by', None, 'env', types=ENUM(None, *GROUP_BY_CHOICES)
     )
 
     return meta.post_setup(app)

@@ -27,15 +27,22 @@ Version 2.x
    - The template feature is now provided by
      :external+render:doc:`sphinxnotes-render <index>`. It offers richer features;
      Please see :external+render:doc:`tmpl`
-   - The extension now provides a ``recentupdate`` extra context for replacing 
-     the ``.. recentupdate::`` directive. See :doc:`usage` for more details
+   - The :rst:dir:`recentupdate`` directive supports more options:
+
+     - New ``:self:`` option: show only revisions that modified the
+       current document
+     - New ``:paths:`` option: Specifiy pathspecs to filter file changes
+     - New ``:group-by:`` option: group revisions by time period (day/month/year)
+
+   - Provide a ``recentupdate`` extra context for use within
+     ``sphinxnotes-render`` compatible templates
+   - New confval: ``recentupdate_group_by``
 
    BREAKING CHANGES:
 
-   - Drop the ``.. recentupdate::`` directive
-   - Drop the ``strftime`` and ``roles`` filters
-   - Drop the ``recentupdate_date_format``, ``recentupdate_template``, and
-     ``recentupdate_exclude_path`` confvals
+   - Drop the ``strftime`` filters, use ``datetime.strfime`` instead
+   - The ``roles`` filter is now provided by ``sphinxnotes-render``
+   - Drop the ``recentupdate_exclude_path``, ``recentupdate_date_format`` confval
    - The members of :py:class:`~sphinxnotes.recentupdate.Revision` are renamed
 
 Version 1.x

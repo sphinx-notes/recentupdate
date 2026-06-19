@@ -2,49 +2,54 @@
 Usage
 =====
 
-The extension provides an extra context ``recentupdate`` for `sphinxnotes-render`_.
-Extra context can be load by the :external+render:term:`load_extra` function in
-a Jinja template. User can easily render a Jinja template via :rst:dir:`data.render`
-directive.
+The :rst:dir:`recentupdate` directive is the recommended way to display recent
+document updates. For cases where you need recent update information inside a
+`sphinxnotes-render`_ compatible template (e.g. alongside other extra contexts),
+use the ``recentupdate`` extra context instead.
 
-``recentupdate``
-================
+The ``recentupdate`` Directive
+==============================
 
-When calling ``load_extra('recentupdate', **kwargs)`` in the template, the
-following parameters are available:
+.. rst:directive:: .. recentupdate:: [count]
 
-``count``
-  Number of recent revisions to return (default from :confval:`recentupdate_count`).
+   Display recent document updates from Git.
 
-``paths``
-  A list of git pathspecs (:manpage:`gitglossary(7)`) to filter file changes
-  (default ``['.']``).
-  See also :example:`Recent Updates of Custom Path`.
+   The optional ``count`` is the number of recent revisions to display.
+   Defaults to :confval:`recentupdate_count`.
 
-``current_doc``
-  If ``True``, only return revisions that modified the current document
-  (default ``False``). 
+   .. rst:directive:option:: self
+      :type: flag
 
-  .. note::
+      Only show revisions that modified the current document.
+      Mutually exclusive with :rst:dir:`recentupdate:paths`.
 
-     When enabled, ``paths`` is overridden with a pathspec matching the current
-     document. So ``paths`` and ``current_doc`` are mutually exclusive.
+      See also :example:`Recent Updates to Current Document`.
 
-  See also :example:`Recent Updates to Current Document`.
+   .. rst:directive:option:: paths
+      :type: lines of str
 
-.. role:: py(code)
-  :language: Python
+      Git pathspecs (:manpage:`gitglossary(7)`) to filter file changes,
+      one per line. Defaults to ``.``.
 
-``group_by``
-  Group revisions by time period. Revisions are grouped by UTC time
-  period and author.
+      See also :example:`Recent Updates of Custom Path`.
 
-  Default from :confval:`recentupdate_group_by`, Available values:
-  :data.render:`{{ load_extra('env').config.values['recentupdate_group_by'].valid_types | autoconfval_types | join(', ') }}`.
+   .. rst:directive:option:: group-by
+      :type: str
 
-  See also :example:`Grouped Recent Updates`.
+      .. role:: py(code)
+        :language: Python
 
-Each item returned is a :py:class:`~sphinxnotes.recentupdate.Revision` object:
+      Group revisions by time period.
+      Available values:
+      :data.render:`{{ load_extra('env').config.values['recentupdate_group_by'].valid_types | autoconfval_types | join(', ') }}`.
+      Defaults to :confval:`recentupdate_group_by`.
+
+      See also :example:`Grouped Recent Updates`.
+
+   The directive body is a Jinja2 template. When empty,
+   :confval:`recentupdate_template` is used. The template context contains
+   a ``{{ revisions }}`` variable, it is a list of
+   :py:class:`~sphinxnotes.recentupdate.Revision` objects.
 
 .. autoclass:: sphinxnotes.recentupdate.Revision
 
@@ -55,6 +60,39 @@ Each item returned is a :py:class:`~sphinxnotes.recentupdate.Revision` object:
    .. autoattribute:: changed_docs
    .. autoattribute:: removed_docs
 
+This is a basic example using the default template:
+
+.. example::
+
+   .. recentupdate::
+
+The ``recentupdate`` Extra Context
+==================================
+
+.. tip::
+
+   The extra context is for use within `sphinxnotes-render`_ compatible templates.
+   In most cases, prefer the :rst:dir:`recentupdate` directive instead.
+
+The ``recentupdate`` extra context can be loaded via
+:external+render:term:`load_extra` in a Jinja template
+(e.g. via :rst:dir:`data.render`):
+
+Parameters:
+
+``count``
+   Equivalent to the argument of :rst:dir:`recentupdate`.
+
+``paths``
+   Equivalent to :rst:dir:`recentupdate:paths`.
+
+``self_only``
+   Equivalent to :rst:dir:`recentupdate:self`.
+
+``group_by``
+   Equivalent to :rst:dir:`recentupdate:group-by`.
+
+                    
 This is a basic example:
 
 .. example::
@@ -67,15 +105,18 @@ This is a basic example:
          {{ r.message[0] }}
       {% endfor %}
 
+.. note:: To Use the ``data.render`` directive, you need to add
+   ``sphinxnotes.render.ext`` to your Sphinx extension list.
+
 Examples
 ========
 
-.. example:: Show Which Files Updated
+.. example:: Show Which Documents Updated
 
-   .. data.render::
+   .. recentupdate::
 
-      {% for r in load_extra('recentupdate', count=5) %}
-      ``📅 {{ r.date.strftime('%Y-%m-%d') }}``
+      {% for r in revisions %}
+      ``{{ r.date.strftime('%Y-%m-%d') }}``
          {% if r.changed_docs -%}
          :Modified: {{ r.changed_docs | roles("doc") | join(", ") }}
          {% endif %}
@@ -87,41 +128,46 @@ Examples
          {% endif %}
       {% endfor %}
 
-      The aboved :external+render:term:`roles` filter is also provided by
-      `sphinxnotes-render`_.
+   The aboved :external+render:term:`roles` filter is also provided by
+   `sphinxnotes-render`_.
+
 
 .. example:: Recent Updates of Custom Path
 
-   .. data.render::
+   Recent changes of the :doc:`changelog`:
 
-      Recent changes of the :doc:`changelog`:
+   .. recentupdate::
+      :paths: docs/changelog.rst
 
-      {% for r in load_extra('recentupdate', count=5, paths=['docs/changelog.rst']) %}
+      {% for r in revisions %}
       ``{{ r.date.strftime('%Y-%m-%d') }}`` — {{ r.message[0] }}
       {% endfor %}
 
 .. example:: Recent Updates to Current Document
 
-   .. data.render::
+   Recent changes to this document:
 
-      Recent changes to this document:
+   .. recentupdate::
+      :self:
 
-      {% for r in load_extra('recentupdate', count=5, current_doc=True) %}
+      {% for r in revisions %}
       ``{{ r.date.strftime('%Y-%m-%d') }}`` — {{ r.message[0] }}
       {% endfor %}
 
 .. example:: Grouped Recent Updates
 
-   .. data.render::
+   Recent updates grouped by month:
 
-      Recent updates grouped by month:
+   .. recentupdate:: 3
+      :group-by: month
 
-      {% for r in load_extra('recentupdate', count=5, group_by='month') %}
+      {% for r in revisions %}
       ``📅 {{ r.date.strftime('%Y-%m') }}``
          ::
-            {% for msg in r.message %}
+            {% for msg in r.message[:20] %}
             {{ msg }}
             {%- endfor %}
+            ...
       {% endfor %}
 
 ``sphinxnotes-render``

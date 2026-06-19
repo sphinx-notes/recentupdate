@@ -209,7 +209,6 @@ def collect_revisions(
     group_by: str | None,
 ) -> list[Revision]:
     """Collect recent revisions from git, optionally grouped by time period."""
-    repo = CURRENT_REPO
     count = count or env.config.recentupdate_count
     group_by = group_by or env.config.recentupdate_group_by
 

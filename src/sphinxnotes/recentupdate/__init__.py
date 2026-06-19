@@ -214,7 +214,7 @@ def collect_revisions(
 
     git_revs = get_git_revisions(repo, env, paths)
 
-    if group_by:
+    if group_by != 'commit':
         groups = OrderedDict()
         for rev in git_revs:
             group_revisions(groups, rev, group_by)
@@ -293,7 +293,7 @@ class RecentUpdateExtraContext(ExtraContext):
 
 
 CURRENT_REPO: Repo
-GROUP_BY_CHOICES = ['day', 'month', 'year']
+GROUP_BY_CHOICES = ['commit', 'day', 'month', 'year']
 DEFAULT_TEMPLATE = dedent("""\
     {% for r in revisions %}
     ``👤 {{ r.author }}`` @ ``📅 {{ r.date.strftime('%Y-%m-%d') }}``
@@ -329,7 +329,7 @@ def setup(app: Sphinx):
     app.add_config_value('recentupdate_count', 5, 'env', types=int)
     app.add_config_value('recentupdate_template', DEFAULT_TEMPLATE, 'env', types=str)
     app.add_config_value(
-        'recentupdate_group_by', None, 'env', types=ENUM(None, *GROUP_BY_CHOICES)
+        'recentupdate_group_by', GROUP_BY_CHOICES[0], 'env', types=ENUM(*GROUP_BY_CHOICES)
     )
 
     return meta.post_setup(app)

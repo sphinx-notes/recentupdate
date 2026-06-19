@@ -6,8 +6,7 @@ The extension provides the following configuration:
 
 .. autoconfval:: recentupdate_count
 
-   Number of recent revisions to return by default when calling
-   ``load_extra('recentupdate')`` without an explicit ``count`` parameter.
+   Number of recent revisions to return by default.
 
 .. autoconfval:: recentupdate_template
 
@@ -23,4 +22,5 @@ The extension provides the following configuration:
 .. autoconfval:: recentupdate_group_by
 
    Group revisions by time period. When set, revisions are grouped by
-   UTC time period and author.
+   UTC time period and author. Defaults to ``commit``, which means
+   each commit is shown separately.

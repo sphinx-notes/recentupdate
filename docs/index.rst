@@ -61,7 +61,6 @@ Then, add the extension name to ``extensions`` configuration item in your
 
    extensions = [
               # …
-              'sphinxnotes.render.ext',
               'sphinxnotes.recentupdate',
               # …
               ]

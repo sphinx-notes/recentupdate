@@ -15,9 +15,9 @@ The extension provides the following configuration:
    The template context contains ``revisions``, a list of
    :py:class:`~sphinxnotes.recentupdate.Revision` objects.
 
-.. autoconfval:: recentupdate_exclude_commit
+.. autoconfval:: recentupdate_skip_commit
 
-   A list of commit message pattern that should be excluded when looking for file changes.
+   A list of commit message pattern that should be skipped when looking for file changes.
 
 .. autoconfval:: recentupdate_group_by
 

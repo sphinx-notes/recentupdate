@@ -133,10 +133,10 @@ def get_git_revisions(
 ) -> Iterator[Revision]:
     """Yield Revision objects from git commits."""
     for cur in repo.iter_commits(paths=paths):
-        matches = [x in cur.message for x in env.config.recentupdate_exclude_commit]
+        matches = [x in cur.message for x in env.config.recentupdate_skip_commit]
         if any(matches):
             logger.debug(
-                f'Skip commit {cur.hexsha}: excluded by recentupdate_exclude_commit'
+                f'Skip commit {cur.hexsha}: excluded by recentupdate_skip_commit'
             )
             continue
 
@@ -324,7 +324,7 @@ def setup(app: Sphinx):
     app.add_directive('recentupdate', RecentUpdateDirective)
 
     app.add_config_value(
-        'recentupdate_exclude_commit', ['skip-recentupdate'], 'env', types=list[str]
+        'recentupdate_skip_commit', ['skip-recentupdate'], 'env', types=list[str]
     )
     app.add_config_value('recentupdate_count', 5, 'env', types=int)
     app.add_config_value('recentupdate_template', DEFAULT_TEMPLATE, 'env', types=str)

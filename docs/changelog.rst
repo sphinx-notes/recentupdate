@@ -44,6 +44,7 @@ Version 2.x
    - The ``roles`` filter is now provided by ``sphinxnotes-render``
    - Drop the ``recentupdate_exclude_path``, ``recentupdate_date_format`` confval
    - The members of :py:class:`~sphinxnotes.recentupdate.Revision` are renamed
+   - Rename confval ``recentupdate_exclude_commit`` to ``recentupdate_skip_commit``
 
 Version 1.x
 ===========

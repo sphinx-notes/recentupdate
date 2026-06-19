@@ -62,7 +62,8 @@ This is a basic example:
    .. data.render::
 
       {% for r in load_extra('recentupdate', count=5) %}
-      ``👤{{ r.author }}`` @ ``📅 {{ r.date }}``
+      ``👤 {{ r.author }}`` @ ``📅 {{ r.date.strftime('%Y-%m-%d') }}``::
+
          {{ r.message[0] }}
       {% endfor %}
 
@@ -74,7 +75,7 @@ Examples
    .. data.render::
 
       {% for r in load_extra('recentupdate', count=5) %}
-      ``📅 {{ r.date }}``
+      ``📅 {{ r.date.strftime('%Y-%m-%d') }}``
          {% if r.changed_docs -%}
          :Modified: {{ r.changed_docs | roles("doc") | join(", ") }}
          {% endif %}
@@ -93,10 +94,10 @@ Examples
 
    .. data.render::
 
-      Recent changes of the ``docs/index.rst`` file:
+      Recent changes of the :doc:`changelog`:
 
-      {% for r in load_extra('recentupdate', count=5, paths=['docs/index.rst']) %}
-      ``{{ r.date }}`` — {{ r.message[0] }}
+      {% for r in load_extra('recentupdate', count=5, paths=['docs/changelog.rst']) %}
+      ``{{ r.date.strftime('%Y-%m-%d') }}`` — {{ r.message[0] }}
       {% endfor %}
 
 .. example:: Recent Updates to Current Document
@@ -106,20 +107,21 @@ Examples
       Recent changes to this document:
 
       {% for r in load_extra('recentupdate', count=5, current_doc=True) %}
-      ``{{ r.date }}`` — {{ r.message[0] }}
+      ``{{ r.date.strftime('%Y-%m-%d') }}`` — {{ r.message[0] }}
       {% endfor %}
 
 .. example:: Grouped Recent Updates
 
    .. data.render::
 
-      Recent updates grouped by day:
+      Recent updates grouped by month:
 
-      {% for r in load_extra('recentupdate', count=10, group_by='month') %}
+      {% for r in load_extra('recentupdate', count=5, group_by='month') %}
       ``📅 {{ r.date.strftime('%Y-%m') }}``
-         {% for msg in r.message[:3] %}
-         {{ msg }}
-         {% endfor %}
+         ::
+            {% for msg in r.message %}
+            {{ msg }}
+            {%- endfor %}
       {% endfor %}
 
 ``sphinxnotes-render``

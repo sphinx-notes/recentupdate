@@ -82,7 +82,7 @@ a revision list:
       The most recent 3 commits:
 
       {% for r in load_extra('recentupdate', 3) %}
-      ``{{ r.date }}``
+      ``{{ r.date.strftime('%Y-%m-%d') }}``
          {{ r.message[0] }}
       {% endfor %}
 

@@ -6,7 +6,7 @@
 
 [project]
 name = "sphinxnotes-recentupdate"
-description = "Get the document update information from git and display it in Sphinx documentation"
+description = "Display recent document updates from Git in Sphinx documentation"
 readme = "README.rst"
 license = "BSD-3-Clause"
 license-files = ["LICENSE"]

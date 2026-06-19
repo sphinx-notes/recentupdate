@@ -14,7 +14,7 @@ from sphinx.util.typing import ExtensionMetadata
 
 __project__ = 'sphinxnotes-recentupdate'
 __author__ = 'Shengyu Zhang'
-__desc__ = 'Get the document update information from git and display it in Sphinx documentation'
+__desc__ = 'Display recent document updates from Git in Sphinx documentation'
 
 try:
     __version__ = metadata.version('sphinxnotes-recentupdate')

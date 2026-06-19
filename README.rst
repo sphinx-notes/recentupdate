@@ -19,7 +19,7 @@ sphinxnotes-recentupdate
 
 |docs| |license| |pypi| |download|
 
-Get the document update information from git and display it in Sphinx documentation.
+Display recent document updates from Git in Sphinx documentation.
 
 .. INTRODUCTION START 
    (MUST written in standard reStructuredText, without Sphinx stuff)

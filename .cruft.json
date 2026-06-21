@@ -1,6 +1,6 @@
 {
   "template": "https://github.com/sphinx-notes/cookiecutter",
-  "commit": "233a8daa4e276a9559975a51178f29e7079dcafd",
+  "commit": "f61a32b45b77d86f5cec729a56a2b129cfcd23a2",
   "checkout": null,
   "context": {
     "cookiecutter": {
@@ -9,7 +9,7 @@
       "full_name": "sphinxnotes-recentupdate",
       "author": "Shengyu Zhang",
       "description": "Display recent document updates from Git in Sphinx documentation",
-      "version": "1.1",
+      "version": "2.0",
       "github_owner": "sphinx-notes",
       "github_repo": "recentupdate",
       "generated_file_header": "This file is generated from sphinx-notes/cookiecutter.",
@@ -22,7 +22,7 @@
       "sphinx_version": "7.0",
       "development_status": "5 - Production/Stable",
       "_template": "https://github.com/sphinx-notes/cookiecutter",
-      "_commit": "233a8daa4e276a9559975a51178f29e7079dcafd"
+      "_commit": "f61a32b45b77d86f5cec729a56a2b129cfcd23a2"
     }
   },
   "directory": null

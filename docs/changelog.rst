@@ -22,6 +22,7 @@ Version 2.x
 ===========
 
 .. version:: 2.0
+   :date: 2026-06-22
    :break:
 
    - The template feature is now provided by

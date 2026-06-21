@@ -13,7 +13,7 @@ author = 'Shengyu Zhang'
 copyright = "2025, " + author
 
 # The full version, including alpha/beta/rc tags
-version = release = '1.1'
+version = release = '2.0'
 
 # -- General configuration ---------------------------------------------------
 
@@ -48,6 +48,11 @@ show_authors = True
 
 # Keep warnings as “system message” paragraphs in the rendered documents.
 keep_warnings = True
+
+# A list of warning codes to suppress arbitrary warning messages.
+suppress_warnings = [
+    'misc.template_evaluation', # Writing evaluated template...
+]
 
 # -- Options for HTML output -------------------------------------------------
 

@@ -1,7 +1,7 @@
 # This file is generated from sphinx-notes/cookiecutter.
-
 # Documentation build dependencies.
 # Keep these out of pyproject optional-dependencies to avoid resolver issues.
+
 furo
 sphinx_copybutton
 sphinxcontrib-gtagjs
@@ -10,6 +10,10 @@ sphinxext-opengraph
 sphinx-last-updated-by-git
 sphinxnotes-project
 sphinxnotes-comboroles
+
+# NOTE: Not used by docs (docs import extension from ../src),
+# only to resolve its optional dependencies.
+sphinxnotes-recentupdate
 
 # CUSTOM DOCS DEPENDENCIES START
 sphinxnotes-render

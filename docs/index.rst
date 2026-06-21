@@ -70,8 +70,8 @@ Then, add the extension name to ``extensions`` configuration item in your
 
 .. ADDITIONAL CONTENT START
 
-Now you can use the :rst:dir:`recentupdate` directive to render a revision list
-of the our documentation.
+Now you can use the :rst:dir:`recentupdate` directive to displays the recent
+updates of the our documentation.
 
 .. example::
 

@@ -21,6 +21,15 @@ Change Log
 Version 2.x
 ===========
 
+.. version:: 2.1
+   :date: 2026-06-22
+
+   - feat: The :rst:dir:`recentupdate:paths` is relative to srcdir
+     (prefixed with ``/``) or current document (prefixed with ``.`` or no prefix)
+     now
+   - fix: Make sure all docnames in Revision prefixed with a ``/``,
+     so it can be correctly referenced by Sphinx's :rst:role:`doc` role
+
 .. version:: 2.0
    :date: 2026-06-22
    :break:

@@ -30,11 +30,9 @@ Introduction
 Get the Sphinx document update information from Git repository.
 
 This extension provides a :rst:dir:`recentupdate` directive that displays
-recent document update information read from a Git_ repository. It also
+recent document update information read from a Git repository. It also
 integrates with :external+render:doc:`sphinxnotes-render <index>` by
 providing an extra context for use in render templates.
-
-.. _Git: https://git-scm.com/
 
 .. INTRODUCTION END
 

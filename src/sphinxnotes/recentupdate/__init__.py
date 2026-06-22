@@ -201,6 +201,30 @@ def path2doc(repo: Repo, env: BuildEnvironment, blob_path: str) -> str | None:
     return '/' + docname if (docname and not path.isabs(docname)) else None
 
 
+def _resolve_paths(
+    repo: Repo,
+    env: BuildEnvironment,
+    docname: str,
+    paths: list[str],
+) -> list[str]:
+    """Resolve user-supplied paths to repo-relative paths.
+
+    - Paths starting with '/' are relative to srcdir.
+    - Paths starting with './' or without prefix are relative to the current
+      document's directory.
+    """
+    resolved = []
+    for p in paths:
+        if p.startswith('/'):
+            abspath = path.join(env.srcdir, p[1:])
+        else:
+            docdir = path.dirname(env.doc2path(docname))
+            abspath = path.join(docdir, p)
+        rel = path.relpath(abspath, repo.working_dir)
+        resolved.append(rel)
+    return resolved
+
+
 def collect_revisions(
     repo: Repo,
     env: BuildEnvironment,
@@ -255,6 +279,7 @@ class RecentUpdateDirective(BaseContextDirective):
             paths = [path.relpath(docpath, repo.working_dir)]
         elif 'paths' in self.options:
             paths = [p.strip() for p in self.options['paths'].splitlines() if p.strip()]
+            paths = _resolve_paths(repo, self.env, self.env.docname, paths)
         else:
             paths = []
 
@@ -288,6 +313,8 @@ class RecentUpdateExtraContext(ExtraContext):
         if self_only:
             docpath = req.env.doc2path(req.env.docname)
             paths = [path.relpath(docpath, repo.working_dir)]
+        else:
+            paths = _resolve_paths(repo, req.env, req.env.docname, paths)
 
         return collect_revisions(repo, req.env, count, paths, group_by)
 

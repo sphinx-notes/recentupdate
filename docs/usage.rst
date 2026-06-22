@@ -28,8 +28,17 @@ The ``recentupdate`` Directive
    .. rst:directive:option:: paths
       :type: lines of str
 
-      Git pathspecs (:manpage:`gitglossary(7)`) to filter file changes,
-      one per line. Defaults to ``.``.
+      List of git pathspecs (:manpage:`gitglossary(7)`) to filter file changes,
+      one per line. Default to ``.`` (Match current directory and its sub-directories).
+
+      Paths starting with ``/`` are relative to the Sphinx's **source directory**
+      (NOT the root of tit worktree); other paths are relative to the current
+      document's directory.
+
+      .. note::
+
+         Special marks in git pathspec like leading colon (``:``),
+         attr mark (``!``, ``=``, ``-``) and so on are not supported for now.
 
       See also :example:`Recent Updates of Custom Path`.
 
@@ -134,10 +143,12 @@ Examples
 
 .. example:: Recent Updates of Custom Path
 
-   Recent changes of the :doc:`changelog`:
+   Recent changes of the :doc:`changelog`
+
+   .. note:: The path is ``changelog.rst`` not ``docs/changelog.rst``
 
    .. recentupdate::
-      :paths: docs/changelog.rst
+      :paths: changelog.rst
 
       {% for r in revisions %}
       ``{{ r.date.strftime('%Y-%m-%d') }}`` — {{ r.message[0] }}

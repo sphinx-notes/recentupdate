@@ -198,7 +198,7 @@ def get_git_revisions(
 def path2doc(repo: Repo, env: BuildEnvironment, blob_path: str) -> str | None:
     """Convert a git repo-relative blob path to a Sphinx document name."""
     docname = env.path2doc(path.join(repo.working_dir, blob_path))
-    return docname if (docname and not path.isabs(docname)) else None
+    return '/' + docname if (docname and not path.isabs(docname)) else None
 
 
 def collect_revisions(

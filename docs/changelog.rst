@@ -28,7 +28,7 @@ Version 2.x
    - The template feature is now provided by
      :external+render:doc:`sphinxnotes-render <index>`. It offers richer features;
      Please see :external+render:doc:`tmpl`
-   - The :rst:dir:`recentupdate`` directive supports more options:
+   - The :rst:dir:`recentupdate` directive supports more options:
 
      - New ``:self:`` option: show only revisions that modified the
        current document
